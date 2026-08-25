@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sri Ranga Electrical Works - Invoice Generator</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:16px;background:#eee;font-family:Arial,sans-serif;color:#111}
+.wrap{max-width:1100px;margin:auto}
+.form{background:#fff;padding:18px;border-radius:8px;margin-bottom:15px;box-shadow:0 2px 10px #bbb}
+h2{text-align:center;color:#0b2d66;margin:0 0 15px}
+label{display:block;font-weight:bold;font-size:14px;margin:7px 0 5px}
+input,textarea{width:100%;padding:10px;border:1px solid #aaa;border-radius:4px;font-size:14px}
+textarea{min-height:65px;resize:vertical}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.full{grid-column:1/-1}
+.item{display:grid;grid-template-columns:2fr 1fr .7fr 1fr 45px;gap:7px;margin:7px 0}
+button{border:0;border-radius:5px;padding:11px 16px;font-weight:bold;cursor:pointer}
+.add{background:#0b2d66;color:#fff}
+.del{background:#c62828;color:#fff;padding:5px}
+.actions{text-align:center;margin:15px 0}
+.actions button{color:#fff;margin:4px;font-size:15px}
+.share{background:#16803c}.print{background:#0b2d66}
+.invoice{width:210mm;min-height:297mm;background:#fff;margin:auto;padding:10mm;box-shadow:0 2px 12px #aaa}
+.ib{border:1px solid #333;min-height:277mm;position:relative;padding-bottom:80px}
+.head{display:flex;align-items:center;justify-content:flex-start;gap:18px;text-align:left;padding:9px 14px}.head .company-logo{flex:0 0 78px;margin:0;width:78px;height:78px}.head .company-info{flex:1;text-align:center;padding-right:78px}.name{font-size:22px;font-weight:bold}.addr{font-size:11px;line-height:1.5;margin-top:4px}.gst{font-size:11px;font-weight:bold}
+.bar{height:15px;background:linear-gradient(90deg,#0b2d66,#1976d2,#00a896)}.title{text-align:center;font-size:16px;font-weight:bold;padding:6px;color:#0b2d66}.header{background:linear-gradient(135deg,#eaf3ff,#ffffff)}
+table{width:100%;border-collapse:collapse}.details{font-size:11px}.details td{border:1px solid #333;padding:7px;vertical-align:top}.party{height:70px;width:58%}
+.info{display:grid;grid-template-columns:1fr 1fr;gap:8px}.items{font-size:10px}.items th,.items td{border:1px solid #333;padding:5px}.items th{text-align:center}
+.c{text-align:center}.r{text-align:right}.l{text-align:left}
+.total{font-size:10px}.total td{border:1px solid #333;padding:5px}.tl{text-align:right;font-weight:bold}.tv{text-align:right;width:28%;font-weight:bold}.grand{background:#0b2d66;color:#fff}
+.bottom-info{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:20px 5px 0}
+.bank-box,.words-box{border:1px solid #0b2d66;border-radius:5px;padding:9px;font-size:10px;min-height:72px}
+.bank-box{background:#eef7ff}.words-box{background:#f4fbf7}
+.box-title{font-weight:bold;color:#0b2d66;margin-bottom:6px}.bank-line{margin:4px 0}.words-box .box-title{color:#16803c}
+
+.sign{text-align:right;font-size:10px;margin:18px 10px 10px 0}.ss{height:35px}
+@media(max-width:700px){
+body{padding:6px}.grid{grid-template-columns:1fr}.full{grid-column:auto}.item{grid-template-columns:1fr 1fr}.item .desc{grid-column:1/-1}.actions{display:flex;flex-direction:column}.actions button{width:100%}
+.invoice{width:100%;padding:4px;box-shadow:none}.bottom-info{grid-template-columns:1fr 1fr}.head{gap:8px;padding:7px}.head .company-logo{flex-basis:58px;width:58px;height:58px}.head .company-info{padding-right:58px}.name{font-size:17px}.addr,.gst{font-size:8px}.details,.items,.total{font-size:8px}
+}
+
+/* ===== 3-COPY PRINT ===== */
+.print-area{
+    display:none;
+}
+
+.print-copy-label{
+    text-align:right;
+    font-weight:800;
+    font-size:8px;
+    letter-spacing:.8px;
+    color:#0b2d66;
+    border:0;
+    padding:0 2mm 2px 0;
+    margin:0;
+    height:10px;
+}
+
+@media print{
+    body > .wrap{
+        display:none !important;
+    }
+
+    body > .print-area{
+        display:block !important;
+    }
+
+    .print-area .print-page{
+        display:block;
+        width:210mm;
+        min-height:297mm;
+        page-break-after:always;
+        break-after:page;
+        padding:0;
+        margin:0;
+    }
+
+    .print-area .print-page:last-child{
+        page-break-after:auto;
+        break-after:auto;
+    }
+
+    .print-area .invoice{
+        width:210mm;
+        min-height:297mm;
+        padding:8mm;
+        margin:0;
+        box-shadow:none;
+    }
+}
+
+@media print{
+@page{size:A4;margin:0}body{padding:0;background:#fff}.form,.actions{display:none!important}.invoice{width:210mm;min-height:297mm;padding:10mm;box-shadow:none}
+}
+
+/* Requested larger key invoice text */
+.details .party,
+.details .party b,
+.details #showParty{
+    font-size:15px !important;
+}
+
+.items th,
+.items td{
+    font-size:13px !important;
+}
+
+.items th:nth-child(2),
+.items td:nth-child(2){
+    font-size:14px !important;
+}
+
+.items th:nth-child(3),
+.items td:nth-child(3),
+.items th:nth-child(4),
+.items td:nth-child(4),
+.items th:nth-child(6),
+.items td:nth-child(6){
+    font-size:13px !important;
+}
+
+.grand,
+.grand td,
+.grand .tl,
+.grand .tv,
+#gt{
+    font-size:15px !important;
+    font-weight:900 !important;
+}
+
+
+.company-logo{
+    width:78px;
+    height:78px;
+    object-fit:contain;
+    display:block;
+    margin:0 auto 5px;
+    border-radius:50%;
+}
+
+
+/* Final requested styling */
+.grand,
+.grand td,
+.grand .tl,
+.grand .tv,
+#gt{
+    color:#111 !important;
+    font-size:17px !important;
+    font-weight:900 !important;
+}
+
+
+/* ===== BILL BOOK THREE-COLOR PRINT ===== */
+@media print {
+  /* ORIGINAL - WHITE */
+  .print-page:nth-child(1),
+  .print-page:nth-child(1) .invoice,
+  .print-page:nth-child(1) .invoice .ib {
+    background: #ffffff !important;
+  }
+
+  /* DUPLICATE - YELLOW BILL PAPER */
+  .print-page:nth-child(2),
+  .print-page:nth-child(2) .invoice,
+  .print-page:nth-child(2) .invoice .ib {
+    background: #fff2a8 !important;
+  }
+
+  /* TRIPLICATE - PINK BILL PAPER */
+  .print-page:nth-child(3),
+  .print-page:nth-child(3) .invoice,
+  .print-page:nth-child(3) .invoice .ib {
+    background: #ffc4d6 !important;
+  }
+
+  /* Make every inner section transparent so the PAPER color shows through
+     like a real three-color bill book. */
+  .print-page .invoice .head,
+  .print-page .invoice .header,
+  .print-page .invoice .details,
+  .print-page .invoice .items,
+  .print-page .invoice .total,
+  .print-page .invoice .bottom-info,
+  .print-page .invoice .bank-box,
+  .print-page .invoice .words-box {
+    background: transparent !important;
+  }
+
+  .print-page {
+    background: transparent !important;
+  }
+}
+
+</style>
+
+<style>
+.invoice-manager{display:flex;justify-content:center;gap:8px;margin:10px 0;flex-wrap:wrap}.invoice-manager button,.backup-actions button{border:0;border-radius:5px;padding:10px 14px;font-weight:bold;cursor:pointer}.save-invoice-btn{background:#16803c;color:#fff}.invoices-btn{background:#6a1b9a;color:#fff}.invoice-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;padding:20px;overflow:auto}.invoice-modal-box{background:#fff;max-width:700px;margin:30px auto;border-radius:10px;padding:16px;box-shadow:0 5px 25px #222}.invoice-modal-head{display:flex;justify-content:space-between;align-items:center;font-size:18px;margin-bottom:12px}.invoice-modal-head button{border:0;background:#c62828;color:#fff;border-radius:4px;padding:7px 10px}.invoice-search{width:100%;padding:10px;border:1px solid #aaa;border-radius:5px}.saved-row{border:1px solid #ccc;border-radius:7px;padding:10px;margin:8px 0;display:flex;justify-content:space-between;gap:10px;align-items:center}.saved-meta{min-width:0}.saved-meta b{display:block}.saved-meta small{color:#555}.saved-buttons{display:flex;gap:5px;flex-wrap:wrap}.saved-buttons button{border:0;border-radius:4px;padding:7px 9px;font-weight:bold;cursor:pointer}.open-btn{background:#0b2d66;color:#fff}.delete-btn{background:#c62828;color:#fff}.backup-actions{display:flex;justify-content:center;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid #ddd}.backup-actions button:first-child{background:#0b2d66;color:#fff}.backup-actions button:nth-child(2){background:#555;color:#fff}@media print{.invoice-manager,.invoice-modal{display:none!important}}
+</style>
+<style>
+#authScreen{position:fixed;inset:0;background:linear-gradient(135deg,#0b2d66,#1976d2);display:flex;align-items:center;justify-content:center;z-index:50000;padding:18px}.login-box{background:#fff;width:min(390px,100%);padding:26px;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.3)}.login-box h2{margin:0 0 18px;text-align:center}.login-box input{width:100%;padding:11px;margin:6px 0 10px;border:1px solid #bbb;border-radius:6px}.login-box button{width:100%;padding:11px;border:0;border-radius:6px;background:#0b2d66;color:#fff;font-weight:bold}.login-links{display:flex;justify-content:center;gap:14px;margin-top:13px}.login-links button{background:none;color:#0b2d66;padding:0;width:auto}.login-error{color:#c62828;text-align:center;min-height:20px;margin-top:8px}.adminbar{display:flex;justify-content:space-between;align-items:center;background:#0b2d66;color:#fff;padding:10px 14px;border-radius:8px;margin-bottom:10px}.adminbar button{background:#c62828;color:#fff;border:0;border-radius:5px;padding:7px 10px;font-weight:bold}.dashboard-tabs{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap}.dashboard-tabs button{border:1px solid #0b2d66;background:#fff;color:#0b2d66;border-radius:5px;padding:9px 12px;font-weight:bold}.dashboard-tabs button.active{background:#0b2d66;color:#fff}.pw-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:51000;display:none;padding:20px}.pw-box{background:#fff;max-width:390px;margin:50px auto;padding:20px;border-radius:10px}.pw-box input{width:100%;padding:10px;margin:6px 0 10px;border:1px solid #bbb;border-radius:5px}.pw-box button{padding:9px 12px;border:0;border-radius:5px;background:#0b2d66;color:#fff;font-weight:bold}.pw-box .cancel{background:#666;margin-left:6px}
+</style></head>
+<body><div id="authScreen"><div class="login-box"><h2>Admin Login</h2><input id="loginUsername" placeholder="Username" autocomplete="username"><input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password"><button onclick="adminLogin()">Login</button><div id="loginError" class="login-error"></div><div class="login-links"><button onclick="openForgot()">Forgot Password?</button><button onclick="openChangePassword()">Change Password</button></div></div></div><div id="pwModal" class="pw-modal"><div class="pw-box" id="pwBox"></div></div>
+<div id="adminApp" style="display:none"><div class="adminbar"><b>Sri Ranga Electrical Works - Admin</b><button onclick="adminLogout()">Logout</button></div><div class="dashboard-tabs"><button id="tabNew" class="active" onclick="showNewInvoiceTab()">🧾 New Invoice</button><button id="tabOld" onclick="showOldInvoiceTab()">📋 Old Invoices</button></div></div><div class="wrap">
+
+<div class="form">
+<h2>Tax Invoice Generator</h2>
+<div class="grid">
+<div class="full">
+<label>Bill To</label>
+<textarea id="party" placeholder="Enter Party Name / Address"></textarea>
+</div>
+<div>
+<label>Invoice Number</label>
+<input id="invno" type="text" placeholder="Automatic Invoice Number" readonly>
+</div>
+<div>
+<label>Invoice Date</label>
+<input id="date" type="date">
+</div>
+</div>
+
+<label>Invoice Items</label>
+<div id="itemsInput"></div>
+<button type="button" class="add" onclick="addItem()">+ Add Item</button>
+</div>
+
+<div class="invoice-manager">
+<button type="button" class="save-invoice-btn" onclick="saveInvoice()">💾 Save Invoice</button>
+<button type="button" class="invoices-btn" onclick="showInvoices()">📋 Invoices</button>
+</div>
+<div id="invoiceListModal" class="invoice-modal" style="display:none">
+<div class="invoice-modal-box">
+<div class="invoice-modal-head"><b>Saved Invoices</b><button type="button" onclick="closeInvoices()">✕</button></div>
+<input id="invoiceSearch" class="invoice-search" placeholder="Search invoice no. / customer" oninput="renderInvoiceList()">
+<div id="savedInvoiceList"></div>
+<div class="backup-actions"><button type="button" onclick="exportInvoices()">⬇ Backup</button><button type="button" onclick="document.getElementById('importFile').click()">⬆ Restore</button><input id="importFile" type="file" accept=".json,application/json" style="display:none" onchange="importInvoices(event)"></div>
+</div></div>
+<div class="actions">
+<button type="button" class="share" onclick="shareInvoice()">🔗 Share</button>
+<button type="button" class="print" onclick="printInvoice()">🖨 Print / Save PDF</button>
+</div>
+
+<div class="invoice">
+<div class="ib">
+<div class="head">
+<img class="company-logo" src="data:image/jpeg;base64,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" alt="Sri Ranga Electrical Works Logo">
+<div class="company-info">
+<div class="name">SRI RANGA ELECTRICAL WORKS</div>
+<div class="addr">LLIG, 11/24 NHI, Mangayarkarasi Street,<br>Maraimalai Nagar (Near TMB BANK),<br>Chengalpattu Dist - 603209</div>
+<div class="gst">GSTIN: 33EXTPM4299H1ZP</div>
+</div>
+</div>
+<div class="bar"></div>
+<div class="title">TAX INVOICE</div>
+
+<table class="details"><tr>
+<td class="party"><b>BILL TO:</b><div id="showParty" style="margin-top:5px">-</div></td>
+<td><div class="info"><b>INVOICE NO.</b><span id="showInv">-</span><b>INVOICE DATE</b><span id="showDate">-</span></div></td>
+</tr></table>
+
+<table class="items"><thead><tr>
+<th>S.No</th><th>Description of Goods</th><th>HSN CODE</th><th>QTY</th><th>RATE</th><th>AMOUNT</th>
+</tr></thead><tbody id="invoiceRows"></tbody></table>
+
+<table class="total">
+<tr><td></td><td class="tl">TOTAL AMOUNT</td><td class="tv">₹ <span id="sub">0.00</span></td></tr>
+<tr><td></td><td class="tl">Add: CGST 9%</td><td class="tv">₹ <span id="cg">0.00</span></td></tr>
+<tr><td></td><td class="tl">Add: SGST 9%</td><td class="tv">₹ <span id="sg">0.00</span></td></tr>
+<tr class="grand"><td></td><td class="tl">GRAND TOTAL</td><td class="tv">₹ <span id="gt">0.00</span></td></tr>
+</table>
+
+<div class="bottom-info">
+<div class="bank-box">
+<div class="box-title">BANK DETAILS</div>
+<div class="bank-line"><b>Bank Name:</b> Tamilnad Mercantile Bank Ltd</div>
+<div class="bank-line"><b>A/C No:</b> 222150050800593</div>
+<div class="bank-line"><b>IFSC:</b> TMBL0000222</div>
+<div class="bank-line"><b>Branch:</b> Maraimalai Nagar</div>
+</div>
+<div class="words-box">
+<div class="box-title">TOTAL AMOUNT (INR - IN WORDS)</div>
+<div id="word">Rupees Zero Only</div>
+</div>
+</div>
+<div class="sign">For SRI RANGA ELECTRICAL WORKS<div class="ss"></div><b>Authorised Signature</b></div>
+</div>
+</div>
+</div>
+
+<div id="printArea" class="print-area"></div>
+
+<script>
+function addItem(){
+ var box=document.getElementById("itemsInput");
+ var row=document.createElement("div");
+ row.className="item";
+ row.innerHTML='<input class="desc" placeholder="Description" type="text"><input class="hsn" placeholder="HSN Code" type="text"><input class="qty" placeholder="Qty" type="number" min="0" step="any"><input class="rate" placeholder="Rate" type="number" min="0" step="any"><button type="button" class="del" onclick="this.parentElement.remove();updateInvoice()">X</button>';
+ box.appendChild(row);
+ row.querySelector(".desc").oninput=updateInvoice;
+ row.querySelector(".hsn").oninput=updateInvoice;
+ row.querySelector(".qty").oninput=updateInvoice;
+ row.querySelector(".rate").oninput=updateInvoice;
+ updateInvoice();
+}
+
+function money(n){
+ return Number(n).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function esc(s){
+ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function two(n){
+ var a=["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
+ var b=["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+ return n<20?a[n]:b[Math.floor(n/10)]+(n%10?" "+a[n%10]:"");
+}
+function indian(n){
+ if(n===0)return"Zero";
+ var r="",c=Math.floor(n/10000000);n%=10000000;
+ var l=Math.floor(n/100000);n%=100000;
+ var t=Math.floor(n/1000);n%=1000;
+ var h=Math.floor(n/100);n%=100;
+ if(c)r+=indian(c)+" Crore ";
+ if(l)r+=two(l)+" Lakh ";
+ if(t)r+=two(t)+" Thousand ";
+ if(h)r+=two(h)+" Hundred ";
+ if(n)r+=two(n);
+ return r.trim();
+}
+function amountWords(n){
+ n=Math.round(Number(n)*100)/100;
+ if(n<=0)return"Rupees Zero Only";
+ var ru=Math.floor(n),pa=Math.round((n-ru)*100),s="Rupees "+indian(ru);
+ if(pa)s+=" and "+two(pa)+" Paise";
+ return s+" Only";
+}
+
+function updateInvoice(){
+ var party=document.getElementById("party").value.trim();
+ document.getElementById("showParty").innerHTML=party?esc(party).replace(/\n/g,"<br>"):"-";
+ document.getElementById("showInv").textContent=document.getElementById("invno").value.trim()||"-";
+ var dv=document.getElementById("date").value;
+ if(dv){var p=dv.split("-");document.getElementById("showDate").textContent=p[2]+"-"+p[1]+"-"+p[0];}
+ else document.getElementById("showDate").textContent="-";
+
+ var rows=document.querySelectorAll("#itemsInput .item");
+ var out=document.getElementById("invoiceRows");
+ out.innerHTML="";
+ var total=0;
+
+ rows.forEach(function(row,i){
+   var d=row.querySelector(".desc").value.trim();
+   var hsn=row.querySelector(".hsn").value.trim();
+   var q=parseFloat(row.querySelector(".qty").value)||0;
+   var r=parseFloat(row.querySelector(".rate").value)||0;
+   var a=q*r; total+=a;
+   var tr=document.createElement("tr");
+   tr.innerHTML="<td class='c'>"+(i+1)+"</td><td class='l'>"+esc(d)+"</td><td class='c'>"+esc(hsn)+"</td><td class='r'>"+(q||"")+"</td><td class='r'>"+(r?money(r):"")+"</td><td class='r'>"+(a?money(a):"")+"</td>";
+   out.appendChild(tr);
+ });
+ while(out.children.length<8){
+   var b=document.createElement("tr");
+   b.innerHTML="<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>";
+   out.appendChild(b);
+ }
+ var cg=total*.09,sg=total*.09,grand=total+cg+sg;
+ document.getElementById("sub").textContent=money(total);
+ document.getElementById("cg").textContent=money(cg);
+ document.getElementById("sg").textContent=money(sg);
+ document.getElementById("gt").textContent=money(grand);
+ document.getElementById("word").textContent=amountWords(grand);
+}
+
+function printInvoice(){
+    var source = document.querySelector(".invoice");
+    var area = document.getElementById("printArea");
+
+    if(!source || !area){
+        alert("Invoice print area not found.");
+        return;
+    }
+
+    area.innerHTML = "";
+
+    var copies = [
+        "ORIGINAL COPY",
+        "DUPLICATE COPY",
+        "TRIPLICATE COPY"
+    ];
+
+    copies.forEach(function(label){
+        var page = document.createElement("div");
+        page.className = "print-page";
+
+        var invoice = source.cloneNode(true);
+
+        var tag = document.createElement("div");
+        tag.className = "print-copy-label";
+        tag.textContent = label;
+
+        var ib = invoice.querySelector(".ib");
+        if(ib){
+            ib.insertBefore(tag, ib.firstChild);
+        }else{
+            invoice.insertBefore(tag, invoice.firstChild);
+        }
+
+        page.appendChild(invoice);
+        area.appendChild(page);
+    });
+
+    window.focus();
+    setTimeout(function(){
+        window.print();
+
+        setTimeout(function(){
+            area.innerHTML = "";
+        }, 1000);
+    }, 150);
+}
+
+async function shareInvoice(){
+    var invoice = document.querySelector(".invoice");
+    var inv = document.getElementById("invno").value.trim() || "Invoice";
+    var title = "Sri Ranga Electrical Works - " + inv;
+
+    if(!invoice){
+        alert("Invoice content not found.");
+        return;
+    }
+
+    /* Try native file/image sharing using a screenshot of the actual invoice.
+       This preserves the same colours, rows, columns and layout. */
+    try{
+        if(typeof html2canvas === "undefined"){
+            await new Promise(function(resolve, reject){
+                var sc = document.createElement("script");
+                sc.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+                sc.onload = resolve;
+                sc.onerror = reject;
+                document.head.appendChild(sc);
+            });
+        }
+
+        var canvas = await html2canvas(invoice, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            logging: false
+        });
+
+        var blob = await new Promise(function(resolve){
+            canvas.toBlob(resolve, "image/png", 1.0);
+        });
+
+        if(blob){
+            var file = new File([blob], inv + ".png", {type:"image/png"});
+
+            if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+                await navigator.share({
+                    title: title,
+                    text: "Sri Ranga Electrical Works - Full Invoice",
+                    files: [file]
+                });
+                return;
+            }
+
+            /* If file sharing is unavailable, open the exact visual invoice image. */
+            var imageURL = URL.createObjectURL(blob);
+            var tab = window.open(imageURL, "_blank");
+            if(tab) return;
+
+            window.location.href = imageURL;
+            return;
+        }
+    }catch(e){
+        /* Fall through to the HTML/full-text fallback below. */
+    }
+
+    /* Fallback: share a complete styled HTML file, not just the amount. */
+    try{
+        var fullHTML =
+            "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>" + title + "</title>" +
+            "<style>" + Array.from(document.querySelectorAll("style"))
+            .map(function(x){return x.textContent;}).join("\n") +
+            "</style></head><body>" +
+            invoice.outerHTML +
+            "</body></html>";
+
+        var file2 = new File(
+            [new Blob([fullHTML], {type:"text/html"})],
+            inv + ".html",
+            {type:"text/html"}
+        );
+
+        if(navigator.share && navigator.canShare && navigator.canShare({files:[file2]})){
+            await navigator.share({title:title,text:"Full Invoice",files:[file2]});
+            return;
+        }
+    }catch(e2){}
+
+    var allText = invoice.innerText || invoice.textContent || "";
+    window.location.href = "https://wa.me/?text=" + encodeURIComponent(allText);
+}
+
+/* =========================================
+   PAGE LOAD
+========================================= */
+
+window.onload = function(){
+    var d = new Date();
+    document.getElementById("date").value =
+        d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2,"0") + "-" +
+        String(d.getDate()).padStart(2,"0");
+    document.getElementById("party").oninput = updateInvoice;
+    document.getElementById("invno").oninput = updateInvoice;
+    document.getElementById("date").onchange = function(){ updateInvoice(); if(window.prepareNewInvoice) prepareNewInvoice(); };
+    addItem();
+    updateInvoice();
+};
+
+</script>
+<script>
+/* ===== MONGODB + ADMIN AUTH MANAGER ===== */
+(function(){
+ const API='https://sri-ranga-electrical-invoice-api.onrender.com';
+ const token=()=>sessionStorage.getItem('invoiceAdminToken');
+ const headers=()=>token()?{'Authorization':'Bearer '+token(),'Content-Type':'application/json'}:{'Content-Type':'application/json'};
+ function showAuth(){document.getElementById('authScreen').style.display='flex';document.getElementById('adminApp').style.display='none';document.querySelector('.wrap').style.display='none';}
+ function showApp(){document.getElementById('authScreen').style.display='none';document.getElementById('adminApp').style.display='block';document.querySelector('.wrap').style.display='block';showNewInvoiceTab();}
+ window.adminLogin=async function(){const u=document.getElementById('loginUsername').value.trim(),p=document.getElementById('loginPassword').value,e=document.getElementById('loginError');e.textContent='';try{const r=await fetch(API+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});const d=await r.json();if(!r.ok)throw Error(d.message||'Login failed');sessionStorage.setItem('invoiceAdminToken',d.token);showApp()}catch(x){e.textContent=x.message}};
+ window.adminLogout=function(){sessionStorage.removeItem('invoiceAdminToken');showAuth()};
+ window.showNewInvoiceTab=function(){document.getElementById('tabNew').classList.add('active');document.getElementById('tabOld').classList.remove('active');document.querySelector('.wrap').style.display='block';document.getElementById('invoiceListModal').style.display='none';window.scrollTo({top:0,behavior:'smooth'});prepareNewInvoice()};
+ window.showOldInvoiceTab=function(){document.getElementById('tabOld').classList.add('active');document.getElementById('tabNew').classList.remove('active');showInvoices()};
+ window.openForgot=function(){document.getElementById('pwBox').innerHTML='<h3>Forgot Password</h3><p>Enter your username and recovery code.</p><input id="fpUser" placeholder="Username"><input id="fpCode" placeholder="Recovery Code"><input id="fpNew" type="password" placeholder="New Password"><input id="fpConfirm" type="password" placeholder="Confirm New Password"><div id="fpMsg" class="login-error"></div><button onclick="forgotPassword()">Reset Password</button><button class="cancel" onclick="closePw()">Cancel</button>';document.getElementById('pwModal').style.display='block'};
+ window.openChangePassword=function(){if(!token()){document.getElementById('loginError').textContent='Login first to change password.';return}document.getElementById('pwBox').innerHTML='<h3>Change Password</h3><input id="cpOld" type="password" placeholder="Current Password"><input id="cpNew" type="password" placeholder="New Password"><input id="cpConfirm" type="password" placeholder="Confirm New Password"><div id="cpMsg" class="login-error"></div><button onclick="changePassword()">Change Password</button><button class="cancel" onclick="closePw()">Cancel</button>';document.getElementById('pwModal').style.display='block'};
+ window.closePw=function(){document.getElementById('pwModal').style.display='none'};
+ window.changePassword=async function(){const msg=document.getElementById('cpMsg'),a=document.getElementById('cpOld').value,b=document.getElementById('cpNew').value,c=document.getElementById('cpConfirm').value;if(b!==c){msg.textContent='New passwords do not match';return}try{const r=await fetch(API+'/api/change-password',{method:'POST',headers:headers(),body:JSON.stringify({oldPassword:a,newPassword:b})});const d=await r.json();if(!r.ok)throw Error(d.message);alert('Password changed successfully. Please login again.');closePw();adminLogout()}catch(e){msg.textContent=e.message}};
+ window.forgotPassword=async function(){const msg=document.getElementById('fpMsg'),u=document.getElementById('fpUser').value.trim(),code=document.getElementById('fpCode').value,n=document.getElementById('fpNew').value,c=document.getElementById('fpConfirm').value;if(n!==c){msg.textContent='New passwords do not match';return}try{const r=await fetch(API+'/api/forgot-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,recoveryCode:code,newPassword:n})});const d=await r.json();if(!r.ok)throw Error(d.message);alert('Password reset successfully.');closePw()}catch(e){msg.textContent=e.message}};
+ function getFinancialYear(dateValue){
+  const d=dateValue?new Date(dateValue+'T00:00:00'):new Date();
+  const y=d.getFullYear(), m=d.getMonth()+1;
+  const start=m>=4?y:y-1;
+  const end=String((start+1)%100).padStart(2,'0');
+  return String(start).slice(-2)+'-'+end;
+ }
+ function collect(){return{invno:(document.getElementById('invno').value||'').trim(),date:document.getElementById('date').value||'',party:document.getElementById('party').value||'',items:Array.from(document.querySelectorAll('#itemsInput .item')).map(r=>({desc:r.querySelector('.desc')?.value||'',hsn:r.querySelector('.hsn')?.value||'',qty:r.querySelector('.qty')?.value||'',rate:r.querySelector('.rate')?.value||''})),amount:document.getElementById('gt')?.textContent||'0.00'}}
+ window.prepareNewInvoice=async function(){
+  const dateEl=document.getElementById('date');
+  const invEl=document.getElementById('invno');
+  if(!dateEl||!invEl||!token()) return;
+  const fy=getFinancialYear(dateEl.value);
+  try{
+    const r=await fetch(API+'/api/invoices',{headers:headers()});
+    const list=await r.json();
+    if(r.status===401){adminLogout();return}
+    if(!r.ok) throw Error(list.message||'Unable to get invoice numbers');
+    const prefix='RE/'+fy+'/';
+    let max=0;
+    (Array.isArray(list)?list:[]).forEach(x=>{
+      const v=String(x.invno||'').trim();
+      if(v.startsWith(prefix)){
+        const m=v.match(/^(?:RE\/\d{2}-\d{2}\/)(\d+)$/i);
+        if(m) max=Math.max(max,Number(m[1])||0);
+      }
+    });
+    invEl.value=prefix+String(max+1);
+    updateInvoice();
+  }catch(e){
+    try{
+      const r=await fetch(API+'/api/next-invoice-number',{headers:headers()});
+      const d=await r.json();
+      if(r.status===401){adminLogout();return}
+      if(!r.ok) throw Error(d.message||'Unable to get invoice number');
+      const m=String(d.invoiceNumber||'1').match(/(\d+)$/);
+      invEl.value='RE/'+fy+'/'+(m?Number(m[1]):1);
+      updateInvoice();
+    }catch(e2){console.error(e2);invEl.value='RE/'+fy+'/1';updateInvoice();}
+  }
+ };
+ window.saveInvoice=async function(){const d=collect();if(!d.invno){alert('Invoice number is not ready. Please wait a moment.');return}try{const r=await fetch(API+'/api/invoices',{method:'POST',headers:headers(),body:JSON.stringify(d)}),x=await r.json();if(r.status===401){adminLogout();return}if(!r.ok)throw Error(x.message);alert(x.updated?'Invoice updated successfully.':'Invoice saved successfully.');if(!x.updated){document.getElementById('party').value='';document.getElementById('itemsInput').innerHTML='';addItem();await prepareNewInvoice();updateInvoice();}}catch(e){alert(e.message)}};
+ window.showInvoices=async function(){document.getElementById('invoiceListModal').style.display='block';document.getElementById('invoiceSearch').value='';await renderInvoiceList()};window.closeInvoices=function(){document.getElementById('invoiceListModal').style.display='none'};
+ window.renderInvoiceList=async function(){const q=document.getElementById('invoiceSearch').value.trim(),box=document.getElementById('savedInvoiceList');box.innerHTML='Loading...';try{const r=await fetch(API+'/api/invoices'+(q?'?search='+encodeURIComponent(q):''),{headers:headers()}),a=await r.json();if(r.status===401){adminLogout();return}if(!r.ok)throw Error(a.message);box.innerHTML='';if(!a.length){box.innerHTML='<div class="empty-saved">No saved invoices found.</div>';return}a.forEach(x=>{const row=document.createElement('div');row.className='saved-row';const m=document.createElement('div');m.className='saved-meta';const b=document.createElement('b');b.textContent='Invoice: '+(x.invno||'-');const s=document.createElement('small');s.textContent=(x.date||'-')+' · '+String(x.party||'-').replace(/\s+/g,' ').slice(0,55)+' · ₹ '+(x.amount||'0.00');m.append(b,s);const bs=document.createElement('div');bs.className='saved-buttons';const o=document.createElement('button');o.className='open-btn';o.textContent='Open';o.onclick=()=>openSavedInvoice(x._id);const del=document.createElement('button');del.className='delete-btn';del.textContent='Delete';del.onclick=()=>deleteSavedInvoice(x._id);bs.append(o,del);row.append(m,bs);box.append(row)})}catch(e){box.innerHTML='<div class="empty-saved">'+e.message+'</div>'}};
+ window.openSavedInvoice=async function(id){try{const r=await fetch(API+'/api/invoices/'+id,{headers:headers()}),d=await r.json();if(r.status===401){adminLogout();return}if(!r.ok)throw Error(d.message);document.getElementById('party').value=d.party||'';document.getElementById('invno').value=d.invno||'';document.getElementById('date').value=d.date||'';const box=document.getElementById('itemsInput');box.innerHTML='';(d.items||[]).forEach(it=>{addItem();const row=box.lastElementChild;row.querySelector('.desc').value=it.desc||'';row.querySelector('.hsn').value=it.hsn||'';row.querySelector('.qty').value=it.qty||'';row.querySelector('.rate').value=it.rate||''});if(!box.children.length)addItem();updateInvoice();closeInvoices();document.getElementById('tabNew').classList.add('active');document.getElementById('tabOld').classList.remove('active');document.querySelector('.wrap').style.display='block';window.scrollTo({top:0,behavior:'smooth'})}catch(e){alert(e.message)}};
+ window.deleteSavedInvoice=async function(id){if(!confirm('Delete this invoice?'))return;const r=await fetch(API+'/api/invoices/'+id,{method:'DELETE',headers:headers()});if(r.status===401){adminLogout();return}if(!r.ok){const d=await r.json();alert(d.message||'Delete failed');return}renderInvoiceList()};
+ window.exportInvoices=function(){alert('Invoices are stored in MongoDB Atlas. Use MongoDB backup tools for backup.')};window.importInvoices=function(){alert('Restore through MongoDB backup tools.')};
+ window.addEventListener('load',()=>{if(token())showApp();else showAuth()});
+})();
+</script>
+</body></html>";
+
+        var file2 = new File(
+            [new Blob([fullHTML], {type:"text/html"})],
+            inv + ".html",
+            {type:"text/html"}
+        );
+
+        if(navigator.share && navigator.canShare && navigator.canShare({files:[file2]})){
+            await navigator.share({
+                title:title,
+                text:"Full Invoice",
+                files:[file2]
+            });
+            return;
+        }
+    }catch(e2){}
+
+    /* Final fallback: WhatsApp with all invoice text. */
+    var allText = invoice.innerText || invoice.textContent || "";
+    window.location.href =
+        "https://wa.me/?text=" +
+        encodeURIComponent(allText);
+}
+
+/* =========================================
+   PAGE LOAD
+========================================= */
+
+window.onload = function(){
+
+    var d = new Date();
+
+    document.getElementById("date").value =
+        d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2,"0") + "-" +
+        String(d.getDate()).padStart(2,"0");
+
+    document.getElementById("party").oninput = updateInvoice;
+    document.getElementById("invno").oninput = updateInvoice;
+    document.getElementById("date").onchange = updateInvoice;
+
+    addItem();
+    updateInvoice();
+};
+
+</script>
+
+
+</body>
+</html>
