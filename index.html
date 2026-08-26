@@ -91,9 +91,7 @@ body{padding:6px}.grid{grid-template-columns:1fr}.full{grid-column:auto}.item{gr
     }
 }
 
-@media print{
-@page{size:A4;margin:0}body{padding:0;background:#fff}.form,.actions{display:none!important}.invoice{width:210mm;min-height:297mm;padding:10mm;box-shadow:none}
-}
+
 
 /* Requested larger key invoice text */
 .details .party,
@@ -201,9 +199,77 @@ body{padding:6px}.grid{grid-template-columns:1fr}.full{grid-column:auto}.item{gr
 </style>
 <style>
 #authScreen{position:fixed;inset:0;background:linear-gradient(135deg,#0b2d66,#1976d2);display:flex;align-items:center;justify-content:center;z-index:50000;padding:18px}.login-box{background:#fff;width:min(390px,100%);padding:26px;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.3)}.login-box h2{margin:0 0 18px;text-align:center}.login-box input{width:100%;padding:11px;margin:6px 0 10px;border:1px solid #bbb;border-radius:6px}.login-box button{width:100%;padding:11px;border:0;border-radius:6px;background:#0b2d66;color:#fff;font-weight:bold}.login-links{display:flex;justify-content:center;gap:14px;margin-top:13px}.login-links button{background:none;color:#0b2d66;padding:0;width:auto}.login-error{color:#c62828;text-align:center;min-height:20px;margin-top:8px}.adminbar{display:flex;justify-content:space-between;align-items:center;background:#0b2d66;color:#fff;padding:10px 14px;border-radius:8px;margin-bottom:10px}.adminbar button{background:#c62828;color:#fff;border:0;border-radius:5px;padding:7px 10px;font-weight:bold}.dashboard-tabs{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap}.dashboard-tabs button{border:1px solid #0b2d66;background:#fff;color:#0b2d66;border-radius:5px;padding:9px 12px;font-weight:bold}.dashboard-tabs button.active{background:#0b2d66;color:#fff}.pw-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:51000;display:none;padding:20px}.pw-box{background:#fff;max-width:390px;margin:50px auto;padding:20px;border-radius:10px}.pw-box input{width:100%;padding:10px;margin:6px 0 10px;border:1px solid #bbb;border-radius:5px}.pw-box button{padding:9px 12px;border:0;border-radius:5px;background:#0b2d66;color:#fff;font-weight:bold}.pw-box .cancel{background:#666;margin-left:6px}
-</style></head>
+</style>
+<style>
+/* ===== CLEAN ADMIN DASHBOARD FLOW ===== */
+.dashboard-shell{
+  max-width:760px;margin:35px auto;padding:0 16px;
+}
+.dashboard-title{
+  text-align:center;color:#0b2d66;font-size:24px;font-weight:900;margin:18px 0 6px;
+}
+.dashboard-subtitle{text-align:center;color:#666;margin:0 0 24px;font-size:14px}
+.dashboard-tabs{
+  display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:18px 0 0;
+}
+.dashboard-tabs button{
+  min-height:150px;border:0!important;border-radius:18px!important;
+  background:linear-gradient(135deg,#0b2d66,#1976d2)!important;color:#fff!important;
+  box-shadow:0 10px 28px rgba(11,45,102,.22);font-size:21px!important;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  transition:.18s transform,.18s box-shadow;
+}
+.dashboard-tabs button:nth-child(2){
+  background:linear-gradient(135deg,#6a1b9a,#ab47bc)!important;
+}
+.dashboard-tabs button:active{transform:scale(.98)}
+.dashboard-tabs button span{font-size:48px;line-height:1}
+.adminbar{max-width:1100px;margin:12px auto!important}
+.invoice-screen{display:none}
+.invoice-backbar{
+  display:flex;align-items:center;gap:10px;max-width:1100px;margin:0 auto 12px;
+}
+.invoice-backbar button{
+  background:#555;color:#fff;border-radius:8px;padding:10px 15px;
+}
+.invoice-screen-title{font-size:18px;font-weight:800;color:#0b2d66}
+.invoice-manager{
+  display:flex!important;justify-content:center;gap:10px;margin:12px 0!important;
+}
+.invoice-manager .save-invoice-btn{background:#16803c!important}
+.invoice-manager .invoices-btn{display:none!important}
+.actions{display:flex!important;justify-content:center;gap:10px}
+.actions .share{display:none!important}
+.actions .print{background:#0b2d66!important}
+.invoice-modal{z-index:60000}
+@media(max-width:700px){
+  .dashboard-shell{margin:20px auto;padding:0 12px}
+  .dashboard-tabs{grid-template-columns:1fr;gap:14px}
+  .dashboard-tabs button{min-height:125px;font-size:19px!important}
+  .adminbar{margin:8px!important}
+  .invoice-backbar{padding:0 6px}
+}
+
+</style>
+</head>
 <body><div id="authScreen"><div class="login-box"><h2>Admin Login</h2><input id="loginUsername" placeholder="Username" autocomplete="username"><input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password"><button onclick="adminLogin()">Login</button><div id="loginError" class="login-error"></div><div class="login-links"><button onclick="openForgot()">Forgot Password?</button><button onclick="openChangePassword()">Change Password</button></div></div></div><div id="pwModal" class="pw-modal"><div class="pw-box" id="pwBox"></div></div>
-<div id="adminApp" style="display:none"><div class="adminbar"><b>Sri Ranga Electrical Works - Admin</b><button onclick="adminLogout()">Logout</button></div><div class="dashboard-tabs"><button id="tabNew" class="active" onclick="showNewInvoiceTab()">🧾 New Invoice</button><button id="tabOld" onclick="showOldInvoiceTab()">📋 Old Invoices</button></div></div><div class="wrap">
+<div id="adminApp" style="display:none">
+<div class="adminbar"><b>⚡ Sri Ranga Electrical Works</b><button onclick="adminLogout()">Logout</button></div>
+<div class="dashboard-shell" id="dashboardShell">
+  <div class="dashboard-title">Admin Dashboard</div>
+  <div class="dashboard-subtitle">Choose what you want to do</div>
+  <div class="dashboard-tabs">
+    <button id="tabNew" onclick="showNewInvoiceTab()"><span>🧾</span>New Invoice</button>
+    <button id="tabOld" onclick="showOldInvoiceTab()"><span>📋</span>Invoices</button>
+  </div>
+</div>
+</div>
+<div class="invoice-screen" id="invoiceScreen">
+<div class="invoice-backbar">
+  <button type="button" onclick="backToDashboard()">← Back</button>
+  <div class="invoice-screen-title">Create Invoice</div>
+</div>
+<div class="wrap">
 
 <div class="form">
 <h2>Tax Invoice Generator</h2>
@@ -291,6 +357,7 @@ body{padding:6px}.grid{grid-template-columns:1fr}.full{grid-column:auto}.item{gr
 </div>
 
 <div id="printArea" class="print-area"></div>
+</div><!-- invoice-screen -->
 
 <script>
 function addItem(){
@@ -375,51 +442,47 @@ function updateInvoice(){
 }
 
 function printInvoice(){
-    var source = document.querySelector(".invoice");
-    var area = document.getElementById("printArea");
+    updateInvoice();
 
-    if(!source || !area){
+    var source=document.querySelector(".invoice");
+    var area=document.getElementById("printArea");
+    if(!source||!area){
         alert("Invoice print area not found.");
         return;
     }
 
-    area.innerHTML = "";
+    area.innerHTML="";
 
-    var copies = [
-        "ORIGINAL COPY",
-        "DUPLICATE COPY",
-        "TRIPLICATE COPY"
-    ];
+    ["ORIGINAL COPY","DUPLICATE COPY","TRIPLICATE COPY"].forEach(function(label,index){
+        var page=document.createElement("div");
+        page.className="print-page";
 
-    copies.forEach(function(label){
-        var page = document.createElement("div");
-        page.className = "print-page";
+        var invoice=source.cloneNode(true);
 
-        var invoice = source.cloneNode(true);
+        var tag=document.createElement("div");
+        tag.className="print-copy-label";
+        tag.textContent=label;
+        tag.style.color=index===0?"#0b2d66":(index===1?"#8a6d00":"#9b1746");
 
-        var tag = document.createElement("div");
-        tag.className = "print-copy-label";
-        tag.textContent = label;
-
-        var ib = invoice.querySelector(".ib");
-        if(ib){
-            ib.insertBefore(tag, ib.firstChild);
-        }else{
-            invoice.insertBefore(tag, invoice.firstChild);
-        }
+        var ib=invoice.querySelector(".ib");
+        if(ib) ib.insertBefore(tag,ib.firstChild);
+        else invoice.insertBefore(tag,invoice.firstChild);
 
         page.appendChild(invoice);
         area.appendChild(page);
     });
 
-    window.focus();
+    /* Only #printArea is allowed to exist in the print document. */
+    document.body.classList.add("printing-invoice");
     setTimeout(function(){
         window.print();
+    },300);
 
-        setTimeout(function(){
-            area.innerHTML = "";
-        }, 1000);
-    }, 150);
+    window.addEventListener("afterprint", function cleanupPrintArea(){
+        area.innerHTML="";
+        document.body.classList.remove("printing-invoice");
+        window.removeEventListener("afterprint", cleanupPrintArea);
+    }, {once:true});
 }
 
 async function shareInvoice(){
@@ -486,7 +549,76 @@ async function shareInvoice(){
             "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>" + title + "</title>" +
             "<style>" + Array.from(document.querySelectorAll("style"))
             .map(function(x){return x.textContent;}).join("\n") +
-            "</style></head><body>" +
+            "
+@media print{
+  html,body{
+    margin:0!important;
+    padding:0!important;
+    background:#fff!important;
+  }
+
+  /* printArea is inside #invoiceScreen, so don't use body > #printArea */
+  body > #authScreen,
+  body > #pwModal,
+  body > #adminApp{
+    display:none!important;
+  }
+
+  body > #invoiceScreen{
+    display:block!important;
+    width:100%!important;
+    margin:0!important;
+    padding:0!important;
+  }
+
+  body > #invoiceScreen > .invoice-backbar,
+  body > #invoiceScreen > .wrap{
+    display:none!important;
+  }
+
+  body > #invoiceScreen > #printArea{
+    display:block!important;
+    width:210mm!important;
+    margin:0!important;
+    padding:0!important;
+  }
+
+  #printArea .print-page{
+    display:block!important;
+    width:210mm!important;
+    height:297mm!important;
+    min-height:297mm!important;
+    max-height:297mm!important;
+    overflow:hidden!important;
+    margin:0!important;
+    padding:0!important;
+    page-break-after:always!important;
+    break-after:page!important;
+  }
+
+  #printArea .print-page:last-child{
+    page-break-after:auto!important;
+    break-after:auto!important;
+  }
+
+  #printArea .invoice{
+    display:block!important;
+    width:210mm!important;
+    height:297mm!important;
+    min-height:297mm!important;
+    max-height:297mm!important;
+    margin:0!important;
+    padding:6mm!important;
+    box-shadow:none!important;
+    overflow:hidden!important;
+  }
+
+  @page{
+    size:A4;
+    margin:0!important;
+  }
+}
+</style></head><body>" +
             invoice.outerHTML +
             "</body></html>";
 
@@ -530,12 +662,13 @@ window.onload = function(){
  const API='https://sri-ranga-electrical-invoice-api.onrender.com';
  const token=()=>sessionStorage.getItem('invoiceAdminToken');
  const headers=()=>token()?{'Authorization':'Bearer '+token(),'Content-Type':'application/json'}:{'Content-Type':'application/json'};
- function showAuth(){document.getElementById('authScreen').style.display='flex';document.getElementById('adminApp').style.display='none';document.querySelector('.wrap').style.display='none';}
- function showApp(){document.getElementById('authScreen').style.display='none';document.getElementById('adminApp').style.display='block';document.querySelector('.wrap').style.display='block';showNewInvoiceTab();}
+ function showAuth(){document.getElementById('authScreen').style.display='flex';document.getElementById('adminApp').style.display='none';document.getElementById('invoiceScreen').style.display='none';}
+ function showApp(){document.getElementById('authScreen').style.display='none';document.getElementById('adminApp').style.display='block';backToDashboard();}
  window.adminLogin=async function(){const u=document.getElementById('loginUsername').value.trim(),p=document.getElementById('loginPassword').value,e=document.getElementById('loginError');e.textContent='';try{const r=await fetch(API+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});const d=await r.json();if(!r.ok)throw Error(d.message||'Login failed');sessionStorage.setItem('invoiceAdminToken',d.token);showApp()}catch(x){e.textContent=x.message}};
  window.adminLogout=function(){sessionStorage.removeItem('invoiceAdminToken');showAuth()};
- window.showNewInvoiceTab=function(){document.getElementById('tabNew').classList.add('active');document.getElementById('tabOld').classList.remove('active');document.querySelector('.wrap').style.display='block';document.getElementById('invoiceListModal').style.display='none';window.scrollTo({top:0,behavior:'smooth'});prepareNewInvoice()};
- window.showOldInvoiceTab=function(){document.getElementById('tabOld').classList.add('active');document.getElementById('tabNew').classList.remove('active');showInvoices()};
+ window.showNewInvoiceTab=function(){document.getElementById('dashboardShell').style.display='none';document.getElementById('invoiceScreen').style.display='block';document.getElementById('invoiceListModal').style.display='none';window.scrollTo({top:0,behavior:'smooth'});prepareNewInvoice()};
+window.backToDashboard=function(){document.getElementById('invoiceScreen').style.display='none';document.getElementById('dashboardShell').style.display='block';document.getElementById('invoiceListModal').style.display='none';window.scrollTo({top:0,behavior:'smooth'})};
+ window.showOldInvoiceTab=function(){document.getElementById('dashboardShell').style.display='none';document.getElementById('invoiceScreen').style.display='block';showInvoices()};
  window.openForgot=function(){document.getElementById('pwBox').innerHTML='<h3>Forgot Password</h3><p>Enter your username and recovery code.</p><input id="fpUser" placeholder="Username"><input id="fpCode" placeholder="Recovery Code"><input id="fpNew" type="password" placeholder="New Password"><input id="fpConfirm" type="password" placeholder="Confirm New Password"><div id="fpMsg" class="login-error"></div><button onclick="forgotPassword()">Reset Password</button><button class="cancel" onclick="closePw()">Cancel</button>';document.getElementById('pwModal').style.display='block'};
  window.openChangePassword=function(){if(!token()){document.getElementById('loginError').textContent='Login first to change password.';return}document.getElementById('pwBox').innerHTML='<h3>Change Password</h3><input id="cpOld" type="password" placeholder="Current Password"><input id="cpNew" type="password" placeholder="New Password"><input id="cpConfirm" type="password" placeholder="Confirm New Password"><div id="cpMsg" class="login-error"></div><button onclick="changePassword()">Change Password</button><button class="cancel" onclick="closePw()">Cancel</button>';document.getElementById('pwModal').style.display='block'};
  window.closePw=function(){document.getElementById('pwModal').style.display='none'};
@@ -583,62 +716,14 @@ window.onload = function(){
   }
  };
  window.saveInvoice=async function(){const d=collect();if(!d.invno){alert('Invoice number is not ready. Please wait a moment.');return}try{const r=await fetch(API+'/api/invoices',{method:'POST',headers:headers(),body:JSON.stringify(d)}),x=await r.json();if(r.status===401){adminLogout();return}if(!r.ok)throw Error(x.message);alert(x.updated?'Invoice updated successfully.':'Invoice saved successfully.');if(!x.updated){document.getElementById('party').value='';document.getElementById('itemsInput').innerHTML='';addItem();await prepareNewInvoice();updateInvoice();}}catch(e){alert(e.message)}};
- window.showInvoices=async function(){document.getElementById('invoiceListModal').style.display='block';document.getElementById('invoiceSearch').value='';await renderInvoiceList()};window.closeInvoices=function(){document.getElementById('invoiceListModal').style.display='none'};
+ window.showInvoices=async function(){document.getElementById('dashboardShell').style.display='none';document.getElementById('invoiceScreen').style.display='block';document.getElementById('invoiceListModal').style.display='block';document.getElementById('invoiceSearch').value='';await renderInvoiceList()};window.closeInvoices=function(){document.getElementById('invoiceListModal').style.display='none';backToDashboard()};
  window.renderInvoiceList=async function(){const q=document.getElementById('invoiceSearch').value.trim(),box=document.getElementById('savedInvoiceList');box.innerHTML='Loading...';try{const r=await fetch(API+'/api/invoices'+(q?'?search='+encodeURIComponent(q):''),{headers:headers()}),a=await r.json();if(r.status===401){adminLogout();return}if(!r.ok)throw Error(a.message);box.innerHTML='';if(!a.length){box.innerHTML='<div class="empty-saved">No saved invoices found.</div>';return}a.forEach(x=>{const row=document.createElement('div');row.className='saved-row';const m=document.createElement('div');m.className='saved-meta';const b=document.createElement('b');b.textContent='Invoice: '+(x.invno||'-');const s=document.createElement('small');s.textContent=(x.date||'-')+' · '+String(x.party||'-').replace(/\s+/g,' ').slice(0,55)+' · ₹ '+(x.amount||'0.00');m.append(b,s);const bs=document.createElement('div');bs.className='saved-buttons';const o=document.createElement('button');o.className='open-btn';o.textContent='Open';o.onclick=()=>openSavedInvoice(x._id);const del=document.createElement('button');del.className='delete-btn';del.textContent='Delete';del.onclick=()=>deleteSavedInvoice(x._id);bs.append(o,del);row.append(m,bs);box.append(row)})}catch(e){box.innerHTML='<div class="empty-saved">'+e.message+'</div>'}};
- window.openSavedInvoice=async function(id){try{const r=await fetch(API+'/api/invoices/'+id,{headers:headers()}),d=await r.json();if(r.status===401){adminLogout();return}if(!r.ok)throw Error(d.message);document.getElementById('party').value=d.party||'';document.getElementById('invno').value=d.invno||'';document.getElementById('date').value=d.date||'';const box=document.getElementById('itemsInput');box.innerHTML='';(d.items||[]).forEach(it=>{addItem();const row=box.lastElementChild;row.querySelector('.desc').value=it.desc||'';row.querySelector('.hsn').value=it.hsn||'';row.querySelector('.qty').value=it.qty||'';row.querySelector('.rate').value=it.rate||''});if(!box.children.length)addItem();updateInvoice();closeInvoices();document.getElementById('tabNew').classList.add('active');document.getElementById('tabOld').classList.remove('active');document.querySelector('.wrap').style.display='block';window.scrollTo({top:0,behavior:'smooth'})}catch(e){alert(e.message)}};
+ window.openSavedInvoice=async function(id){try{const r=await fetch(API+'/api/invoices/'+id,{headers:headers()}),d=await r.json();if(r.status===401){adminLogout();return}if(!r.ok)throw Error(d.message);document.getElementById('party').value=d.party||'';document.getElementById('invno').value=d.invno||'';document.getElementById('date').value=d.date||'';const box=document.getElementById('itemsInput');box.innerHTML='';(d.items||[]).forEach(it=>{addItem();const row=box.lastElementChild;row.querySelector('.desc').value=it.desc||'';row.querySelector('.hsn').value=it.hsn||'';row.querySelector('.qty').value=it.qty||'';row.querySelector('.rate').value=it.rate||''});if(!box.children.length)addItem();updateInvoice();closeInvoices();document.getElementById('dashboardShell').style.display='none';document.getElementById('invoiceScreen').style.display='block';window.scrollTo({top:0,behavior:'smooth'})}catch(e){alert(e.message)}};
  window.deleteSavedInvoice=async function(id){if(!confirm('Delete this invoice?'))return;const r=await fetch(API+'/api/invoices/'+id,{method:'DELETE',headers:headers()});if(r.status===401){adminLogout();return}if(!r.ok){const d=await r.json();alert(d.message||'Delete failed');return}renderInvoiceList()};
  window.exportInvoices=function(){alert('Invoices are stored in MongoDB Atlas. Use MongoDB backup tools for backup.')};window.importInvoices=function(){alert('Restore through MongoDB backup tools.')};
  window.addEventListener('load',()=>{if(token())showApp();else showAuth()});
 })();
 </script>
-</body></html>";
-
-        var file2 = new File(
-            [new Blob([fullHTML], {type:"text/html"})],
-            inv + ".html",
-            {type:"text/html"}
-        );
-
-        if(navigator.share && navigator.canShare && navigator.canShare({files:[file2]})){
-            await navigator.share({
-                title:title,
-                text:"Full Invoice",
-                files:[file2]
-            });
-            return;
-        }
-    }catch(e2){}
-
-    /* Final fallback: WhatsApp with all invoice text. */
-    var allText = invoice.innerText || invoice.textContent || "";
-    window.location.href =
-        "https://wa.me/?text=" +
-        encodeURIComponent(allText);
-}
-
-/* =========================================
-   PAGE LOAD
-========================================= */
-
-window.onload = function(){
-
-    var d = new Date();
-
-    document.getElementById("date").value =
-        d.getFullYear() + "-" +
-        String(d.getMonth() + 1).padStart(2,"0") + "-" +
-        String(d.getDate()).padStart(2,"0");
-
-    document.getElementById("party").oninput = updateInvoice;
-    document.getElementById("invno").oninput = updateInvoice;
-    document.getElementById("date").onchange = updateInvoice;
-
-    addItem();
-    updateInvoice();
-};
-
-</script>
-
 
 </body>
 </html>
