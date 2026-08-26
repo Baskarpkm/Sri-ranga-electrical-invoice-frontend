@@ -642,88 +642,2053 @@ async function shareInvoice(){
    PAGE LOAD
 ========================================= */
 
-window.onload = function(){
-    var d = new Date();
-    document.getElementById("date").value =
-        d.getFullYear() + "-" +
-        String(d.getMonth() + 1).padStart(2,"0") + "-" +
-        String(d.getDate()).padStart(2,"0");
-    document.getElementById("party").oninput = updateInvoice;
-    document.getElementById("invno").oninput = updateInvoice;
-    document.getElementById("date").onchange = function(){ updateInvoice(); if(window.prepareNewInvoice) prepareNewInvoice(); };
-    addItem();
-    updateInvoice();
-};
 
-</script>
 <script>
-/* ===== MONGODB + ADMIN AUTH MANAGER ===== */
-(function(){
- const API='https://sri-ranga-electrical-invoice-api.onrender.com';
- const token=()=>sessionStorage.getItem('invoiceAdminToken');
- const headers=()=>token()?{'Authorization':'Bearer '+token(),'Content-Type':'application/json'}:{'Content-Type':'application/json'};
- function showAuth(){document.getElementById('authScreen').style.display='flex';document.getElementById('adminApp').style.display='none';document.getElementById('invoiceScreen').style.display='none';}
- function showApp(){document.getElementById('authScreen').style.display='none';document.getElementById('adminApp').style.display='block';backToDashboard();}
- window.adminLogin=async function(){const u=document.getElementById('loginUsername').value.trim(),p=document.getElementById('loginPassword').value,e=document.getElementById('loginError');e.textContent='';try{const r=await fetch(API+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});const d=await r.json();if(!r.ok)throw Error(d.message||'Login failed');sessionStorage.setItem('invoiceAdminToken',d.token);showApp()}catch(x){e.textContent=x.message}};
- window.adminLogout=function(){sessionStorage.removeItem('invoiceAdminToken');showAuth()};
- window.showNewInvoiceTab=function(){document.getElementById('dashboardShell').style.display='none';document.getElementById('invoiceScreen').style.display='block';document.getElementById('invoiceListModal').style.display='none';window.scrollTo({top:0,behavior:'smooth'});prepareNewInvoice()};
-window.backToDashboard=function(){document.getElementById('invoiceScreen').style.display='none';document.getElementById('dashboardShell').style.display='block';document.getElementById('invoiceListModal').style.display='none';window.scrollTo({top:0,behavior:'smooth'})};
- window.showOldInvoiceTab=function(){document.getElementById('dashboardShell').style.display='none';document.getElementById('invoiceScreen').style.display='block';showInvoices()};
- window.openForgot=function(){document.getElementById('pwBox').innerHTML='<h3>Forgot Password</h3><p>Enter your username and recovery code.</p><input id="fpUser" placeholder="Username"><input id="fpCode" placeholder="Recovery Code"><input id="fpNew" type="password" placeholder="New Password"><input id="fpConfirm" type="password" placeholder="Confirm New Password"><div id="fpMsg" class="login-error"></div><button onclick="forgotPassword()">Reset Password</button><button class="cancel" onclick="closePw()">Cancel</button>';document.getElementById('pwModal').style.display='block'};
- window.openChangePassword=function(){if(!token()){document.getElementById('loginError').textContent='Login first to change password.';return}document.getElementById('pwBox').innerHTML='<h3>Change Password</h3><input id="cpOld" type="password" placeholder="Current Password"><input id="cpNew" type="password" placeholder="New Password"><input id="cpConfirm" type="password" placeholder="Confirm New Password"><div id="cpMsg" class="login-error"></div><button onclick="changePassword()">Change Password</button><button class="cancel" onclick="closePw()">Cancel</button>';document.getElementById('pwModal').style.display='block'};
- window.closePw=function(){document.getElementById('pwModal').style.display='none'};
- window.changePassword=async function(){const msg=document.getElementById('cpMsg'),a=document.getElementById('cpOld').value,b=document.getElementById('cpNew').value,c=document.getElementById('cpConfirm').value;if(b!==c){msg.textContent='New passwords do not match';return}try{const r=await fetch(API+'/api/change-password',{method:'POST',headers:headers(),body:JSON.stringify({oldPassword:a,newPassword:b})});const d=await r.json();if(!r.ok)throw Error(d.message);alert('Password changed successfully. Please login again.');closePw();adminLogout()}catch(e){msg.textContent=e.message}};
- window.forgotPassword=async function(){const msg=document.getElementById('fpMsg'),u=document.getElementById('fpUser').value.trim(),code=document.getElementById('fpCode').value,n=document.getElementById('fpNew').value,c=document.getElementById('fpConfirm').value;if(n!==c){msg.textContent='New passwords do not match';return}try{const r=await fetch(API+'/api/forgot-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,recoveryCode:code,newPassword:n})});const d=await r.json();if(!r.ok)throw Error(d.message);alert('Password reset successfully.');closePw()}catch(e){msg.textContent=e.message}};
- function getFinancialYear(dateValue){
-  const d=dateValue?new Date(dateValue+'T00:00:00'):new Date();
-  const y=d.getFullYear(), m=d.getMonth()+1;
-  const start=m>=4?y:y-1;
-  const end=String((start+1)%100).padStart(2,'0');
-  return String(start).slice(-2)+'-'+end;
- }
- function collect(){return{invno:(document.getElementById('invno').value||'').trim(),date:document.getElementById('date').value||'',party:document.getElementById('party').value||'',items:Array.from(document.querySelectorAll('#itemsInput .item')).map(r=>({desc:r.querySelector('.desc')?.value||'',hsn:r.querySelector('.hsn')?.value||'',qty:r.querySelector('.qty')?.value||'',rate:r.querySelector('.rate')?.value||''})),amount:document.getElementById('gt')?.textContent||'0.00'}}
- window.prepareNewInvoice=async function(){
-  const dateEl=document.getElementById('date');
-  const invEl=document.getElementById('invno');
-  if(!dateEl||!invEl||!token()) return;
-  const fy=getFinancialYear(dateEl.value);
-  try{
-    const r=await fetch(API+'/api/invoices',{headers:headers()});
-    const list=await r.json();
-    if(r.status===401){adminLogout();return}
-    if(!r.ok) throw Error(list.message||'Unable to get invoice numbers');
-    const prefix='RE/'+fy+'/';
-    let max=0;
-    (Array.isArray(list)?list:[]).forEach(x=>{
-      const v=String(x.invno||'').trim();
-      if(v.startsWith(prefix)){
-        const m=v.match(/^(?:RE\/\d{2}-\d{2}\/)(\d+)$/i);
-        if(m) max=Math.max(max,Number(m[1])||0);
-      }
+/* =========================================================
+   SRI RANGA ELECTRICAL WORKS
+   INVOICE + MONGODB + ADMIN AUTH
+   FIXED: ADD ITEM + OPEN SAVED INVOICE
+========================================================= */
+
+function addItem(data = {}) {
+    const box = document.getElementById("itemsInput");
+
+    if (!box) {
+        console.error("itemsInput not found");
+        return null;
+    }
+
+    const row = document.createElement("div");
+    row.className = "item";
+
+    const desc = document.createElement("input");
+    desc.className = "desc";
+    desc.type = "text";
+    desc.placeholder = "Description";
+    desc.value = data.desc || "";
+
+    const hsn = document.createElement("input");
+    hsn.className = "hsn";
+    hsn.type = "text";
+    hsn.placeholder = "HSN Code";
+    hsn.value = data.hsn || "";
+
+    const qty = document.createElement("input");
+    qty.className = "qty";
+    qty.type = "number";
+    qty.min = "0";
+    qty.step = "any";
+    qty.placeholder = "Qty";
+    qty.value = data.qty || "";
+
+    const rate = document.createElement("input");
+    rate.className = "rate";
+    rate.type = "number";
+    rate.min = "0";
+    rate.step = "any";
+    rate.placeholder = "Rate";
+    rate.value = data.rate || "";
+
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "del";
+    del.textContent = "X";
+
+    del.addEventListener("click", function () {
+        row.remove();
+        updateInvoice();
     });
-    invEl.value=prefix+String(max+1);
+
+    [desc, hsn, qty, rate].forEach(function (input) {
+        input.addEventListener("input", updateInvoice);
+    });
+
+    row.appendChild(desc);
+    row.appendChild(hsn);
+    row.appendChild(qty);
+    row.appendChild(rate);
+    row.appendChild(del);
+
+    box.appendChild(row);
+
     updateInvoice();
-  }catch(e){
-    try{
-      const r=await fetch(API+'/api/next-invoice-number',{headers:headers()});
-      const d=await r.json();
-      if(r.status===401){adminLogout();return}
-      if(!r.ok) throw Error(d.message||'Unable to get invoice number');
-      const m=String(d.invoiceNumber||'1').match(/(\d+)$/);
-      invEl.value='RE/'+fy+'/'+(m?Number(m[1]):1);
-      updateInvoice();
-    }catch(e2){console.error(e2);invEl.value='RE/'+fy+'/1';updateInvoice();}
-  }
- };
- window.saveInvoice=async function(){const d=collect();if(!d.invno){alert('Invoice number is not ready. Please wait a moment.');return}try{const r=await fetch(API+'/api/invoices',{method:'POST',headers:headers(),body:JSON.stringify(d)}),x=await r.json();if(r.status===401){adminLogout();return}if(!r.ok)throw Error(x.message);alert(x.updated?'Invoice updated successfully.':'Invoice saved successfully.');if(!x.updated){document.getElementById('party').value='';document.getElementById('itemsInput').innerHTML='';addItem();await prepareNewInvoice();updateInvoice();}}catch(e){alert(e.message)}};
- window.showInvoices=async function(){document.getElementById('dashboardShell').style.display='none';document.getElementById('invoiceScreen').style.display='block';document.getElementById('invoiceListModal').style.display='block';document.getElementById('invoiceSearch').value='';await renderInvoiceList()};window.closeInvoices=function(){document.getElementById('invoiceListModal').style.display='none';backToDashboard()};
- window.renderInvoiceList=async function(){const q=document.getElementById('invoiceSearch').value.trim(),box=document.getElementById('savedInvoiceList');box.innerHTML='Loading...';try{const r=await fetch(API+'/api/invoices'+(q?'?search='+encodeURIComponent(q):''),{headers:headers()}),a=await r.json();if(r.status===401){adminLogout();return}if(!r.ok)throw Error(a.message);box.innerHTML='';if(!a.length){box.innerHTML='<div class="empty-saved">No saved invoices found.</div>';return}a.forEach(x=>{const row=document.createElement('div');row.className='saved-row';const m=document.createElement('div');m.className='saved-meta';const b=document.createElement('b');b.textContent='Invoice: '+(x.invno||'-');const s=document.createElement('small');s.textContent=(x.date||'-')+' · '+String(x.party||'-').replace(/\s+/g,' ').slice(0,55)+' · ₹ '+(x.amount||'0.00');m.append(b,s);const bs=document.createElement('div');bs.className='saved-buttons';const o=document.createElement('button');o.className='open-btn';o.textContent='Open';o.onclick=()=>openSavedInvoice(x._id);const del=document.createElement('button');del.className='delete-btn';del.textContent='Delete';del.onclick=()=>deleteSavedInvoice(x._id);bs.append(o,del);row.append(m,bs);box.append(row)})}catch(e){box.innerHTML='<div class="empty-saved">'+e.message+'</div>'}};
- window.openSavedInvoice=async function(id){try{const r=await fetch(API+'/api/invoices/'+id,{headers:headers()}),d=await r.json();if(r.status===401){adminLogout();return}if(!r.ok)throw Error(d.message);document.getElementById('party').value=d.party||'';document.getElementById('invno').value=d.invno||'';document.getElementById('date').value=d.date||'';const box=document.getElementById('itemsInput');box.innerHTML='';(d.items||[]).forEach(it=>{addItem();const row=box.lastElementChild;row.querySelector('.desc').value=it.desc||'';row.querySelector('.hsn').value=it.hsn||'';row.querySelector('.qty').value=it.qty||'';row.querySelector('.rate').value=it.rate||''});if(!box.children.length)addItem();updateInvoice();closeInvoices();document.getElementById('dashboardShell').style.display='none';document.getElementById('invoiceScreen').style.display='block';window.scrollTo({top:0,behavior:'smooth'})}catch(e){alert(e.message)}};
- window.deleteSavedInvoice=async function(id){if(!confirm('Delete this invoice?'))return;const r=await fetch(API+'/api/invoices/'+id,{method:'DELETE',headers:headers()});if(r.status===401){adminLogout();return}if(!r.ok){const d=await r.json();alert(d.message||'Delete failed');return}renderInvoiceList()};
- window.exportInvoices=function(){alert('Invoices are stored in MongoDB Atlas. Use MongoDB backup tools for backup.')};window.importInvoices=function(){alert('Restore through MongoDB backup tools.')};
- window.addEventListener('load',()=>{if(token())showApp();else showAuth()});
+
+    return row;
+}
+
+
+/* ================= MONEY ================= */
+
+function money(n) {
+    return Number(n).toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+
+/* ================= ESCAPE HTML ================= */
+
+function esc(s) {
+    return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+
+/* ================= NUMBER TO WORD ================= */
+
+function two(n) {
+    var a = [
+        "",
+        "One",
+        "Two",
+        "Three",
+        "Four",
+        "Five",
+        "Six",
+        "Seven",
+        "Eight",
+        "Nine",
+        "Ten",
+        "Eleven",
+        "Twelve",
+        "Thirteen",
+        "Fourteen",
+        "Fifteen",
+        "Sixteen",
+        "Seventeen",
+        "Eighteen",
+        "Nineteen"
+    ];
+
+    var b = [
+        "",
+        "",
+        "Twenty",
+        "Thirty",
+        "Forty",
+        "Fifty",
+        "Sixty",
+        "Seventy",
+        "Eighty",
+        "Ninety"
+    ];
+
+    n = Number(n) || 0;
+
+    if (n < 20) return a[n];
+
+    return b[Math.floor(n / 10)] +
+        (n % 10 ? " " + a[n % 10] : "");
+}
+
+
+function indian(n) {
+    n = Math.floor(Number(n) || 0);
+
+    if (n === 0) return "Zero";
+
+    var r = "";
+
+    var c = Math.floor(n / 10000000);
+    n %= 10000000;
+
+    var l = Math.floor(n / 100000);
+    n %= 100000;
+
+    var t = Math.floor(n / 1000);
+    n %= 1000;
+
+    var h = Math.floor(n / 100);
+    n %= 100;
+
+    if (c) r += indian(c) + " Crore ";
+
+    if (l) r += two(l) + " Lakh ";
+
+    if (t) r += two(t) + " Thousand ";
+
+    if (h) r += two(h) + " Hundred ";
+
+    if (n) r += two(n);
+
+    return r.trim();
+}
+
+
+function amountWords(n) {
+    n = Math.round(Number(n) * 100) / 100;
+
+    if (n <= 0) return "Rupees Zero Only";
+
+    var ru = Math.floor(n);
+    var pa = Math.round((n - ru) * 100);
+
+    var s = "Rupees " + indian(ru);
+
+    if (pa) {
+        s += " and " + two(pa) + " Paise";
+    }
+
+    return s + " Only";
+}
+
+
+/* ================= UPDATE INVOICE ================= */
+
+function updateInvoice() {
+
+    var partyEl = document.getElementById("party");
+    var invEl = document.getElementById("invno");
+    var dateEl = document.getElementById("date");
+
+    if (!partyEl || !invEl || !dateEl) return;
+
+    var party = partyEl.value.trim();
+
+    var showParty = document.getElementById("showParty");
+
+    if (showParty) {
+        showParty.innerHTML = party
+            ? esc(party).replace(/\n/g, "<br>")
+            : "-";
+    }
+
+    var showInv = document.getElementById("showInv");
+
+    if (showInv) {
+        showInv.textContent = invEl.value.trim() || "-";
+    }
+
+    var showDate = document.getElementById("showDate");
+
+    if (showDate) {
+
+        var dv = dateEl.value;
+
+        if (dv) {
+            var p = dv.split("-");
+
+            showDate.textContent =
+                p[2] + "-" +
+                p[1] + "-" +
+                p[0];
+
+        } else {
+            showDate.textContent = "-";
+        }
+    }
+
+    var rows =
+        document.querySelectorAll("#itemsInput .item");
+
+    var out =
+        document.getElementById("invoiceRows");
+
+    if (!out) return;
+
+    out.innerHTML = "";
+
+    var total = 0;
+
+    rows.forEach(function (row, i) {
+
+        var d =
+            row.querySelector(".desc")?.value.trim() || "";
+
+        var hsn =
+            row.querySelector(".hsn")?.value.trim() || "";
+
+        var q =
+            parseFloat(
+                row.querySelector(".qty")?.value
+            ) || 0;
+
+        var r =
+            parseFloat(
+                row.querySelector(".rate")?.value
+            ) || 0;
+
+        var a = q * r;
+
+        total += a;
+
+        var tr = document.createElement("tr");
+
+        tr.innerHTML =
+            "<td class='c'>" + (i + 1) + "</td>" +
+            "<td class='l'>" + esc(d) + "</td>" +
+            "<td class='c'>" + esc(hsn) + "</td>" +
+            "<td class='r'>" + (q || "") + "</td>" +
+            "<td class='r'>" + (r ? money(r) : "") + "</td>" +
+            "<td class='r'>" + (a ? money(a) : "") + "</td>";
+
+        out.appendChild(tr);
+    });
+
+
+    while (out.children.length < 8) {
+
+        var blank = document.createElement("tr");
+
+        blank.innerHTML =
+            "<td>&nbsp;</td>" +
+            "<td>&nbsp;</td>" +
+            "<td>&nbsp;</td>" +
+            "<td>&nbsp;</td>" +
+            "<td>&nbsp;</td>" +
+            "<td>&nbsp;</td>";
+
+        out.appendChild(blank);
+    }
+
+
+    var cg = total * 0.09;
+    var sg = total * 0.09;
+
+    var grand = total + cg + sg;
+
+
+    var sub = document.getElementById("sub");
+    var cgEl = document.getElementById("cg");
+    var sgEl = document.getElementById("sg");
+    var gt = document.getElementById("gt");
+    var word = document.getElementById("word");
+
+    if (sub) sub.textContent = money(total);
+
+    if (cgEl) cgEl.textContent = money(cg);
+
+    if (sgEl) sgEl.textContent = money(sg);
+
+    if (gt) gt.textContent = money(grand);
+
+    if (word) word.textContent = amountWords(grand);
+}
+
+
+/* =========================================================
+   PRINT
+========================================================= */
+
+function printInvoice() {
+
+    updateInvoice();
+
+    var source =
+        document.querySelector(".invoice");
+
+    var area =
+        document.getElementById("printArea");
+
+    if (!source || !area) {
+        alert("Invoice print area not found.");
+        return;
+    }
+
+    area.innerHTML = "";
+
+    var copies = [
+        "ORIGINAL COPY",
+        "DUPLICATE COPY",
+        "TRIPLICATE COPY"
+    ];
+
+    copies.forEach(function (label, index) {
+
+        var page =
+            document.createElement("div");
+
+        page.className = "print-page";
+
+        var invoice =
+            source.cloneNode(true);
+
+        var tag =
+            document.createElement("div");
+
+        tag.className =
+            "print-copy-label";
+
+        tag.textContent = label;
+
+        var ib =
+            invoice.querySelector(".ib");
+
+        if (ib) {
+            ib.insertBefore(tag, ib.firstChild);
+        }
+
+        page.appendChild(invoice);
+
+        area.appendChild(page);
+    });
+
+
+    setTimeout(function () {
+        window.print();
+    }, 300);
+
+
+    window.addEventListener(
+        "afterprint",
+        function cleanup() {
+
+            area.innerHTML = "";
+
+            window.removeEventListener(
+                "afterprint",
+                cleanup
+            );
+        },
+        { once: true }
+    );
+}
+
+
+/* =========================================================
+   SHARE
+========================================================= */
+
+async function shareInvoice() {
+
+    var invoice =
+        document.querySelector(".invoice");
+
+    var inv =
+        document.getElementById("invno")?.value.trim()
+        || "Invoice";
+
+    var title =
+        "Sri Ranga Electrical Works - " + inv;
+
+    if (!invoice) {
+        alert("Invoice content not found.");
+        return;
+    }
+
+    try {
+
+        if (typeof html2canvas === "undefined") {
+
+            await new Promise(function (resolve, reject) {
+
+                var sc =
+                    document.createElement("script");
+
+                sc.src =
+                    "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+
+                sc.onload = resolve;
+
+                sc.onerror = reject;
+
+                document.head.appendChild(sc);
+            });
+        }
+
+
+        var canvas =
+            await html2canvas(invoice, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: "#ffffff",
+                logging: false
+            });
+
+
+        var blob =
+            await new Promise(function (resolve) {
+
+                canvas.toBlob(
+                    resolve,
+                    "image/png",
+                    1.0
+                );
+            });
+
+
+        if (blob) {
+
+            var file =
+                new File(
+                    [blob],
+                    inv + ".png",
+                    { type: "image/png" }
+                );
+
+
+            if (
+                navigator.share &&
+                navigator.canShare &&
+                navigator.canShare({ files: [file] })
+            ) {
+
+                await navigator.share({
+                    title: title,
+                    text: "Sri Ranga Electrical Works - Full Invoice",
+                    files: [file]
+                });
+
+                return;
+            }
+
+
+            var imageURL =
+                URL.createObjectURL(blob);
+
+            var tab =
+                window.open(imageURL, "_blank");
+
+            if (tab) return;
+
+            window.location.href = imageURL;
+        }
+
+    } catch (e) {
+
+        var allText =
+            invoice.innerText ||
+            invoice.textContent ||
+            "";
+
+        window.location.href =
+            "https://wa.me/?text=" +
+            encodeURIComponent(allText);
+    }
+}
+
+
+/* =========================================================
+   MONGODB + ADMIN AUTH
+========================================================= */
+
+(function () {
+
+    const API =
+        "https://sri-ranga-electrical-invoice-api.onrender.com";
+
+
+    const token = () =>
+        sessionStorage.getItem(
+            "invoiceAdminToken"
+        );
+
+
+    const headers = () =>
+        token()
+            ? {
+                "Authorization":
+                    "Bearer " + token(),
+                "Content-Type":
+                    "application/json"
+            }
+            : {
+                "Content-Type":
+                    "application/json"
+            };
+
+
+    function showAuth() {
+
+        var auth =
+            document.getElementById("authScreen");
+
+        var app =
+            document.getElementById("adminApp");
+
+        var invoice =
+            document.getElementById("invoiceScreen");
+
+        if (auth) auth.style.display = "flex";
+
+        if (app) app.style.display = "none";
+
+        if (invoice) invoice.style.display = "none";
+    }
+
+
+    function showApp() {
+
+        var auth =
+            document.getElementById("authScreen");
+
+        var app =
+            document.getElementById("adminApp");
+
+        if (auth) auth.style.display = "none";
+
+        if (app) app.style.display = "block";
+
+        backToDashboard();
+    }
+
+
+    /* ================= LOGIN ================= */
+
+    window.adminLogin = async function () {
+
+        var u =
+            document.getElementById(
+                "loginUsername"
+            ).value.trim();
+
+        var p =
+            document.getElementById(
+                "loginPassword"
+            ).value;
+
+        var e =
+            document.getElementById(
+                "loginError"
+            );
+
+        e.textContent = "";
+
+
+        try {
+
+            var r =
+                await fetch(
+                    API + "/api/login",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+                        body: JSON.stringify({
+                            username: u,
+                            password: p
+                        })
+                    }
+                );
+
+
+            var d = await r.json();
+
+
+            if (!r.ok) {
+                throw Error(
+                    d.message ||
+                    "Login failed"
+                );
+            }
+
+
+            sessionStorage.setItem(
+                "invoiceAdminToken",
+                d.token
+            );
+
+
+            showApp();
+
+        } catch (x) {
+
+            e.textContent =
+                x.message;
+        }
+    };
+
+
+    /* ================= LOGOUT ================= */
+
+    window.adminLogout = function () {
+
+        sessionStorage.removeItem(
+            "invoiceAdminToken"
+        );
+
+        showAuth();
+    };
+
+
+    /* ================= DASHBOARD ================= */
+
+    window.showNewInvoiceTab = function () {
+
+        document.getElementById(
+            "dashboardShell"
+        ).style.display = "none";
+
+        document.getElementById(
+            "invoiceScreen"
+        ).style.display = "block";
+
+        document.getElementById(
+            "invoiceListModal"
+        ).style.display = "none";
+
+
+        prepareNewInvoice();
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    };
+
+
+    window.backToDashboard = function () {
+
+        var screen =
+            document.getElementById(
+                "invoiceScreen"
+            );
+
+        var dash =
+            document.getElementById(
+                "dashboardShell"
+            );
+
+        var modal =
+            document.getElementById(
+                "invoiceListModal"
+            );
+
+        if (screen)
+            screen.style.display = "none";
+
+        if (dash)
+            dash.style.display = "block";
+
+        if (modal)
+            modal.style.display = "none";
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    };
+
+
+    window.showOldInvoiceTab = function () {
+
+        document.getElementById(
+            "dashboardShell"
+        ).style.display = "none";
+
+        document.getElementById(
+            "invoiceScreen"
+        ).style.display = "block";
+
+        showInvoices();
+    };
+
+
+    /* ================= PASSWORD ================= */
+
+    window.openForgot = function () {
+
+        document.getElementById(
+            "pwBox"
+        ).innerHTML = `
+            <h3>Forgot Password</h3>
+            <p>Enter your username and recovery code.</p>
+            <input id="fpUser" placeholder="Username">
+            <input id="fpCode" placeholder="Recovery Code">
+            <input id="fpNew" type="password" placeholder="New Password">
+            <input id="fpConfirm" type="password" placeholder="Confirm New Password">
+            <div id="fpMsg" class="login-error"></div>
+            <button onclick="forgotPassword()">Reset Password</button>
+            <button class="cancel" onclick="closePw()">Cancel</button>
+        `;
+
+        document.getElementById(
+            "pwModal"
+        ).style.display = "block";
+    };
+
+
+    window.openChangePassword = function () {
+
+        if (!token()) {
+
+            document.getElementById(
+                "loginError"
+            ).textContent =
+                "Login first to change password.";
+
+            return;
+        }
+
+
+        document.getElementById(
+            "pwBox"
+        ).innerHTML = `
+            <h3>Change Password</h3>
+            <input id="cpOld" type="password" placeholder="Current Password">
+            <input id="cpNew" type="password" placeholder="New Password">
+            <input id="cpConfirm" type="password" placeholder="Confirm New Password">
+            <div id="cpMsg" class="login-error"></div>
+            <button onclick="changePassword()">Change Password</button>
+            <button class="cancel" onclick="closePw()">Cancel</button>
+        `;
+
+        document.getElementById(
+            "pwModal"
+        ).style.display = "block";
+    };
+
+
+    window.closePw = function () {
+
+        document.getElementById(
+            "pwModal"
+        ).style.display = "none";
+    };
+
+
+    window.changePassword = async function () {
+
+        var msg =
+            document.getElementById(
+                "cpMsg"
+            );
+
+        var oldPassword =
+            document.getElementById(
+                "cpOld"
+            ).value;
+
+        var newPassword =
+            document.getElementById(
+                "cpNew"
+            ).value;
+
+        var confirm =
+            document.getElementById(
+                "cpConfirm"
+            ).value;
+
+
+        if (newPassword !== confirm) {
+
+            msg.textContent =
+                "New passwords do not match";
+
+            return;
+        }
+
+
+        try {
+
+            var r =
+                await fetch(
+                    API + "/api/change-password",
+                    {
+                        method: "POST",
+                        headers: headers(),
+                        body: JSON.stringify({
+                            oldPassword:
+                                oldPassword,
+                            newPassword:
+                                newPassword
+                        })
+                    }
+                );
+
+
+            var d =
+                await r.json();
+
+
+            if (!r.ok)
+                throw Error(d.message);
+
+
+            alert(
+                "Password changed successfully. Please login again."
+            );
+
+            closePw();
+
+            adminLogout();
+
+        } catch (e) {
+
+            msg.textContent =
+                e.message;
+        }
+    };
+
+
+    window.forgotPassword = async function () {
+
+        var msg =
+            document.getElementById(
+                "fpMsg"
+            );
+
+        var u =
+            document.getElementById(
+                "fpUser"
+            ).value.trim();
+
+        var code =
+            document.getElementById(
+                "fpCode"
+            ).value;
+
+        var n =
+            document.getElementById(
+                "fpNew"
+            ).value;
+
+        var c =
+            document.getElementById(
+                "fpConfirm"
+            ).value;
+
+
+        if (n !== c) {
+
+            msg.textContent =
+                "New passwords do not match";
+
+            return;
+        }
+
+
+        try {
+
+            var r =
+                await fetch(
+                    API + "/api/forgot-password",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+                        body: JSON.stringify({
+                            username: u,
+                            recoveryCode: code,
+                            newPassword: n
+                        })
+                    }
+                );
+
+
+            var d =
+                await r.json();
+
+
+            if (!r.ok)
+                throw Error(d.message);
+
+
+            alert(
+                "Password reset successfully."
+            );
+
+            closePw();
+
+        } catch (e) {
+
+            msg.textContent =
+                e.message;
+        }
+    };
+
+
+    /* ================= FINANCIAL YEAR ================= */
+
+    function getFinancialYear(dateValue) {
+
+        var d =
+            dateValue
+                ? new Date(
+                    dateValue +
+                    "T00:00:00"
+                )
+                : new Date();
+
+
+        var y =
+            d.getFullYear();
+
+        var m =
+            d.getMonth() + 1;
+
+
+        var start =
+            m >= 4
+                ? y
+                : y - 1;
+
+
+        var end =
+            String(
+                (start + 1) % 100
+            ).padStart(2, "0");
+
+
+        return (
+            String(start).slice(-2) +
+            "-" +
+            end
+        );
+    }
+
+
+    /* ================= COLLECT ================= */
+
+    function collect() {
+
+        return {
+
+            invno:
+                (
+                    document.getElementById(
+                        "invno"
+                    ).value || ""
+                ).trim(),
+
+            date:
+                document.getElementById(
+                    "date"
+                ).value || "",
+
+            party:
+                document.getElementById(
+                    "party"
+                ).value || "",
+
+            items:
+                Array.from(
+                    document.querySelectorAll(
+                        "#itemsInput .item"
+                    )
+                ).map(function (r) {
+
+                    return {
+
+                        desc:
+                            r.querySelector(
+                                ".desc"
+                            )?.value || "",
+
+                        hsn:
+                            r.querySelector(
+                                ".hsn"
+                            )?.value || "",
+
+                        qty:
+                            r.querySelector(
+                                ".qty"
+                            )?.value || "",
+
+                        rate:
+                            r.querySelector(
+                                ".rate"
+                            )?.value || ""
+                    };
+                }),
+
+            amount:
+                document.getElementById(
+                    "gt"
+                )?.textContent ||
+                "0.00"
+        };
+    }
+
+
+    /* =========================================================
+       PREPARE NEW INVOICE
+    ========================================================= */
+
+    window.prepareNewInvoice = async function () {
+
+        var dateEl =
+            document.getElementById(
+                "date"
+            );
+
+        var invEl =
+            document.getElementById(
+                "invno"
+            );
+
+        if (
+            !dateEl ||
+            !invEl ||
+            !token()
+        ) return;
+
+
+        var fy =
+            getFinancialYear(
+                dateEl.value
+            );
+
+
+        try {
+
+            var r =
+                await fetch(
+                    API + "/api/invoices",
+                    {
+                        headers:
+                            headers()
+                    }
+                );
+
+
+            var list =
+                await r.json();
+
+
+            if (r.status === 401) {
+
+                adminLogout();
+
+                return;
+            }
+
+
+            if (!r.ok)
+                throw Error(
+                    list.message ||
+                    "Unable to get invoice numbers"
+                );
+
+
+            var prefix =
+                "RE/" + fy + "/";
+
+
+            var max = 0;
+
+
+            (
+                Array.isArray(list)
+                    ? list
+                    : []
+            ).forEach(function (x) {
+
+                var v =
+                    String(
+                        x.invno || ""
+                    ).trim();
+
+
+                if (
+                    v.startsWith(
+                        prefix
+                    )
+                ) {
+
+                    var m =
+                        v.match(
+                            /^(?:RE\/\d{2}-\d{2}\/)(\d+)$/i
+                        );
+
+
+                    if (m) {
+
+                        max =
+                            Math.max(
+                                max,
+                                Number(
+                                    m[1]
+                                ) || 0
+                            );
+                    }
+                }
+            });
+
+
+            invEl.value =
+                prefix +
+                String(max + 1);
+
+
+            updateInvoice();
+
+        } catch (e) {
+
+            try {
+
+                var r =
+                    await fetch(
+                        API +
+                        "/api/next-invoice-number",
+                        {
+                            headers:
+                                headers()
+                        }
+                    );
+
+
+                var d =
+                    await r.json();
+
+
+                if (r.status === 401) {
+
+                    adminLogout();
+
+                    return;
+                }
+
+
+                if (!r.ok)
+                    throw Error(
+                        d.message ||
+                        "Unable to get invoice number"
+                    );
+
+
+                var m =
+                    String(
+                        d.invoiceNumber ||
+                        "1"
+                    ).match(
+                        /(\d+)$/
+                    );
+
+
+                invEl.value =
+                    "RE/" +
+                    fy +
+                    "/" +
+                    (
+                        m
+                            ? Number(m[1])
+                            : 1
+                    );
+
+
+                updateInvoice();
+
+            } catch (e2) {
+
+                console.error(e2);
+
+                invEl.value =
+                    "RE/" +
+                    fy +
+                    "/1";
+
+                updateInvoice();
+            }
+        }
+    };
+
+
+    /* =========================================================
+       SAVE
+    ========================================================= */
+
+    window.saveInvoice = async function () {
+
+        var d = collect();
+
+
+        if (!d.invno) {
+
+            alert(
+                "Invoice number is not ready. Please wait a moment."
+            );
+
+            return;
+        }
+
+
+        try {
+
+            var r =
+                await fetch(
+                    API + "/api/invoices",
+                    {
+                        method: "POST",
+                        headers: headers(),
+                        body:
+                            JSON.stringify(d)
+                    }
+                );
+
+
+            var x =
+                await r.json();
+
+
+            if (r.status === 401) {
+
+                adminLogout();
+
+                return;
+            }
+
+
+            if (!r.ok)
+                throw Error(
+                    x.message ||
+                    "Save failed"
+                );
+
+
+            alert(
+                x.updated
+                    ? "Invoice updated successfully."
+                    : "Invoice saved successfully."
+            );
+
+
+            if (!x.updated) {
+
+                document.getElementById(
+                    "party"
+                ).value = "";
+
+
+                document.getElementById(
+                    "itemsInput"
+                ).innerHTML = "";
+
+
+                addItem();
+
+
+                await prepareNewInvoice();
+
+                updateInvoice();
+            }
+
+        } catch (e) {
+
+            alert(e.message);
+        }
+    };
+
+
+    /* =========================================================
+       SHOW INVOICES
+    ========================================================= */
+
+    window.showInvoices = async function () {
+
+        document.getElementById(
+            "dashboardShell"
+        ).style.display = "none";
+
+
+        document.getElementById(
+            "invoiceScreen"
+        ).style.display = "block";
+
+
+        document.getElementById(
+            "invoiceListModal"
+        ).style.display = "block";
+
+
+        document.getElementById(
+            "invoiceSearch"
+        ).value = "";
+
+
+        await renderInvoiceList();
+    };
+
+
+    window.closeInvoices = function () {
+
+        document.getElementById(
+            "invoiceListModal"
+        ).style.display = "none";
+
+
+        backToDashboard();
+    };
+
+
+    /* =========================================================
+       RENDER INVOICE LIST
+    ========================================================= */
+
+    window.renderInvoiceList = async function () {
+
+        var q =
+            document.getElementById(
+                "invoiceSearch"
+            ).value.trim();
+
+
+        var box =
+            document.getElementById(
+                "savedInvoiceList"
+            );
+
+
+        box.innerHTML =
+            "Loading...";
+
+
+        try {
+
+            var url =
+                API +
+                "/api/invoices" +
+                (
+                    q
+                        ? "?search=" +
+                          encodeURIComponent(q)
+                        : ""
+                );
+
+
+            var r =
+                await fetch(
+                    url,
+                    {
+                        headers:
+                            headers()
+                    }
+                );
+
+
+            var a =
+                await r.json();
+
+
+            if (r.status === 401) {
+
+                adminLogout();
+
+                return;
+            }
+
+
+            if (!r.ok)
+                throw Error(
+                    a.message ||
+                    "Unable to load invoices"
+                );
+
+
+            box.innerHTML = "";
+
+
+            if (
+                !Array.isArray(a) ||
+                !a.length
+            ) {
+
+                box.innerHTML =
+                    '<div class="empty-saved">No saved invoices found.</div>';
+
+                return;
+            }
+
+
+            a.forEach(function (x) {
+
+                var row =
+                    document.createElement(
+                        "div"
+                    );
+
+                row.className =
+                    "saved-row";
+
+
+                var m =
+                    document.createElement(
+                        "div"
+                    );
+
+                m.className =
+                    "saved-meta";
+
+
+                var b =
+                    document.createElement(
+                        "b"
+                    );
+
+                b.textContent =
+                    "Invoice: " +
+                    (
+                        x.invno ||
+                        "-"
+                    );
+
+
+                var s =
+                    document.createElement(
+                        "small"
+                    );
+
+                s.textContent =
+                    (
+                        x.date ||
+                        "-"
+                    ) +
+                    " · " +
+                    String(
+                        x.party ||
+                        "-"
+                    )
+                    .replace(
+                        /\s+/g,
+                        " "
+                    )
+                    .slice(0, 55) +
+                    " · ₹ " +
+                    (
+                        x.amount ||
+                        "0.00"
+                    );
+
+
+                m.append(
+                    b,
+                    s
+                );
+
+
+                var bs =
+                    document.createElement(
+                        "div"
+                    );
+
+                bs.className =
+                    "saved-buttons";
+
+
+                var o =
+                    document.createElement(
+                        "button"
+                    );
+
+                o.className =
+                    "open-btn";
+
+                o.type =
+                    "button";
+
+                o.textContent =
+                    "Open";
+
+
+                /*
+                   IMPORTANT FIX:
+                   Store ID directly in button.
+                   This avoids closure/event problems.
+                */
+
+                o.dataset.id =
+                    String(
+                        x._id ||
+                        x.id ||
+                        ""
+                    );
+
+
+                o.addEventListener(
+                    "click",
+                    function () {
+
+                        var id =
+                            this.dataset.id;
+
+                        if (!id) {
+
+                            alert(
+                                "Invoice ID is missing."
+                            );
+
+                            return;
+                        }
+
+                        openSavedInvoice(id);
+                    }
+                );
+
+
+                var del =
+                    document.createElement(
+                        "button"
+                    );
+
+                del.className =
+                    "delete-btn";
+
+                del.type =
+                    "button";
+
+                del.textContent =
+                    "Delete";
+
+
+                del.dataset.id =
+                    String(
+                        x._id ||
+                        x.id ||
+                        ""
+                    );
+
+
+                del.addEventListener(
+                    "click",
+                    function () {
+
+                        deleteSavedInvoice(
+                            this.dataset.id
+                        );
+                    }
+                );
+
+
+                bs.append(
+                    o,
+                    del
+                );
+
+
+                row.append(
+                    m,
+                    bs
+                );
+
+
+                box.appendChild(
+                    row
+                );
+            });
+
+        } catch (e) {
+
+            console.error(
+                "Invoice list error:",
+                e
+            );
+
+            box.innerHTML =
+                '<div class="empty-saved">' +
+                esc(e.message) +
+                "</div>";
+        }
+    };
+
+
+    /* =========================================================
+       OPEN SAVED INVOICE
+       MAIN FIX
+    ========================================================= */
+
+    window.openSavedInvoice = async function (id) {
+
+        if (!id) {
+
+            alert(
+                "Invoice ID is missing."
+            );
+
+            return;
+        }
+
+
+        try {
+
+            var r =
+                await fetch(
+                    API +
+                    "/api/invoices/" +
+                    encodeURIComponent(id),
+                    {
+                        headers:
+                            headers()
+                    }
+                );
+
+
+            var d =
+                await r.json();
+
+
+            if (r.status === 401) {
+
+                adminLogout();
+
+                return;
+            }
+
+
+            if (!r.ok) {
+
+                throw Error(
+                    d.message ||
+                    "Unable to open invoice"
+                );
+            }
+
+
+            /*
+               Fill invoice header
+            */
+
+            var party =
+                document.getElementById(
+                    "party"
+                );
+
+            var invno =
+                document.getElementById(
+                    "invno"
+                );
+
+            var date =
+                document.getElementById(
+                    "date"
+                );
+
+
+            if (party)
+                party.value =
+                    d.party || "";
+
+
+            if (invno)
+                invno.value =
+                    d.invno || "";
+
+
+            if (date)
+                date.value =
+                    d.date || "";
+
+
+            /*
+               Clear existing rows
+            */
+
+            var box =
+                document.getElementById(
+                    "itemsInput"
+                );
+
+
+            if (!box) {
+
+                throw Error(
+                    "Items section not found."
+                );
+            }
+
+
+            box.innerHTML = "";
+
+
+            /*
+               Re-create every saved item
+               using the FIXED addItem()
+            */
+
+            if (
+                Array.isArray(d.items) &&
+                d.items.length
+            ) {
+
+                d.items.forEach(
+                    function (item) {
+
+                        addItem({
+                            desc:
+                                item.desc ||
+                                "",
+
+                            hsn:
+                                item.hsn ||
+                                "",
+
+                            qty:
+                                item.qty ||
+                                "",
+
+                            rate:
+                                item.rate ||
+                                ""
+                        });
+                    }
+                );
+
+            } else {
+
+                addItem();
+            }
+
+
+            /*
+               Recalculate invoice
+            */
+
+            updateInvoice();
+
+
+            /*
+               Close list and show invoice
+            */
+
+            var modal =
+                document.getElementById(
+                    "invoiceListModal"
+                );
+
+            if (modal)
+                modal.style.display =
+                    "none";
+
+
+            document.getElementById(
+                "dashboardShell"
+            ).style.display =
+                "none";
+
+
+            document.getElementById(
+                "invoiceScreen"
+            ).style.display =
+                "block";
+
+
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+
+
+        } catch (e) {
+
+            console.error(
+                "OPEN INVOICE ERROR:",
+                e
+            );
+
+            alert(
+                "Unable to open invoice: " +
+                e.message
+            );
+        }
+    };
+
+
+    /* =========================================================
+       DELETE
+    ========================================================= */
+
+    window.deleteSavedInvoice =
+        async function (id) {
+
+            if (!id) {
+
+                alert(
+                    "Invoice ID is missing."
+                );
+
+                return;
+            }
+
+
+            if (
+                !confirm(
+                    "Delete this invoice?"
+                )
+            ) return;
+
+
+            try {
+
+                var r =
+                    await fetch(
+                        API +
+                        "/api/invoices/" +
+                        encodeURIComponent(id),
+                        {
+                            method: "DELETE",
+                            headers:
+                                headers()
+                        }
+                    );
+
+
+                if (r.status === 401) {
+
+                    adminLogout();
+
+                    return;
+                }
+
+
+                if (!r.ok) {
+
+                    var d =
+                        await r.json();
+
+                    alert(
+                        d.message ||
+                        "Delete failed"
+                    );
+
+                    return;
+                }
+
+
+                await renderInvoiceList();
+
+            } catch (e) {
+
+                alert(
+                    "Delete failed: " +
+                    e.message
+                );
+            }
+        };
+
+
+    window.exportInvoices = function () {
+
+        alert(
+            "Invoices are stored in MongoDB Atlas. Use MongoDB backup tools for backup."
+        );
+    };
+
+
+    window.importInvoices = function () {
+
+        alert(
+            "Restore through MongoDB backup tools."
+        );
+    };
+
+
+    /* =========================================================
+       SINGLE LOAD HANDLER
+       IMPORTANT FIX
+    ========================================================= */
+
+    window.addEventListener(
+        "load",
+        async function () {
+
+            /*
+               First initialise invoice UI
+            */
+
+            var d =
+                new Date();
+
+
+            var dateEl =
+                document.getElementById(
+                    "date"
+                );
+
+
+            if (
+                dateEl &&
+                !dateEl.value
+            ) {
+
+                dateEl.value =
+                    d.getFullYear() +
+                    "-" +
+                    String(
+                        d.getMonth() + 1
+                    ).padStart(2, "0") +
+                    "-" +
+                    String(
+                        d.getDate()
+                    ).padStart(2, "0");
+            }
+
+
+            var party =
+                document.getElementById(
+                    "party"
+                );
+
+            var invno =
+                document.getElementById(
+                    "invno"
+                );
+
+
+            if (party)
+                party.addEventListener(
+                    "input",
+                    updateInvoice
+                );
+
+
+            if (invno)
+                invno.addEventListener(
+                    "input",
+                    updateInvoice
+                );
+
+
+            if (dateEl)
+                dateEl.addEventListener(
+                    "change",
+                    function () {
+
+                        updateInvoice();
+
+                        if (
+                            window.prepareNewInvoice
+                        ) {
+                            prepareNewInvoice();
+                        }
+                    }
+                );
+
+
+            /*
+               Only add initial row if empty.
+            */
+
+            var itemsBox =
+                document.getElementById(
+                    "itemsInput"
+                );
+
+
+            if (
+                itemsBox &&
+                !itemsBox.children.length
+            ) {
+
+                addItem();
+            }
+
+
+            updateInvoice();
+
+
+            /*
+               Authentication
+            */
+
+            if (token()) {
+
+                showApp();
+
+            } else {
+
+                showAuth();
+            }
+        }
+    );
+
 })();
 </script>
-
 </body>
 </html>
