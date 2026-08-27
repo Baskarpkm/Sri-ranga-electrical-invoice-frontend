@@ -1,0 +1,17 @@
+{
+  "name": "Sri Ranga Electrical Works",
+  "short_name": "Sri Ranga Invoice",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0b2d66",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
