@@ -192,6 +192,90 @@ body{padding:6px}.grid{grid-template-columns:1fr}.full{grid-column:auto}.item{gr
   }
 }
 
+
+
+/* ===== FINAL PRINT FIX: INVOICE ONLY, 3 COPIES, ONE COPY PER PAGE ===== */
+@media print {
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  /* Hide the complete application and show only the generated print area. */
+  body.printing-invoice > #authScreen,
+  body.printing-invoice > #pwModal,
+  body.printing-invoice > #adminApp {
+    display: none !important;
+  }
+
+  body.printing-invoice > #invoiceScreen {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  body.printing-invoice #invoiceScreen > .invoice-backbar,
+  body.printing-invoice #invoiceScreen > .wrap {
+    display: none !important;
+  }
+
+  body.printing-invoice #printArea {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* 270mm is deliberately below both A4 (297mm) and Letter (279.4mm),
+     so Android's remembered Letter setting cannot create a second page. */
+  body.printing-invoice #printArea .print-page {
+    display: block !important;
+    width: 100% !important;
+    height: 270mm !important;
+    min-height: 270mm !important;
+    max-height: 270mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    box-sizing: border-box !important;
+  }
+
+  body.printing-invoice #printArea .print-page:last-child {
+    page-break-after: auto !important;
+    break-after: auto !important;
+  }
+
+  body.printing-invoice #printArea .print-page > .invoice {
+    display: block !important;
+    width: 210mm !important;
+    height: 270mm !important;
+    min-height: 270mm !important;
+    max-height: 270mm !important;
+    margin: 0 auto !important;
+    padding: 4mm !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  body.printing-invoice #printArea .print-page > .invoice > .ib {
+    min-height: 262mm !important;
+    height: 262mm !important;
+    max-height: 262mm !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 0 !important;
+  }
+}
 </style>
 
 <style>
@@ -251,6 +335,90 @@ body{padding:6px}.grid{grid-template-columns:1fr}.full{grid-column:auto}.item{gr
 }
 
 </style>
+
+<style>
+/* ===== FINAL PRINT TEXT SIZE / BOLDNESS ===== */
+@media print {
+  /* Company details */
+  body.printing-invoice #printArea .invoice .name {
+    font-size: 23px !important;
+    font-weight: 900 !important;
+  }
+  body.printing-invoice #printArea .invoice .addr {
+    font-size: 12px !important;
+    line-height: 1.45 !important;
+    font-weight: 800 !important;
+  }
+  body.printing-invoice #printArea .invoice .gst {
+    font-size: 13px !important;
+    font-weight: 900 !important;
+  }
+
+  /* Bill To + Invoice number/date */
+  body.printing-invoice #printArea .invoice .details {
+    font-size: 13px !important;
+  }
+  body.printing-invoice #printArea .invoice .details .party {
+    font-size: 15px !important;
+    font-weight: 800 !important;
+  }
+  body.printing-invoice #printArea .invoice .details .party b {
+    font-size: 16px !important;
+    font-weight: 900 !important;
+  }
+  body.printing-invoice #printArea .invoice .info {
+    font-size: 13px !important;
+    font-weight: 900 !important;
+  }
+  body.printing-invoice #printArea .invoice .info b,
+  body.printing-invoice #printArea .invoice .info span {
+    font-size: 14px !important;
+    font-weight: 900 !important;
+  }
+
+  /* Totals and GST */
+  body.printing-invoice #printArea .invoice .total {
+    font-size: 13px !important;
+  }
+  body.printing-invoice #printArea .invoice .total td {
+    padding: 6px 7px !important;
+  }
+  body.printing-invoice #printArea .invoice .total .tl,
+  body.printing-invoice #printArea .invoice .total .tv {
+    font-size: 14px !important;
+    font-weight: 900 !important;
+  }
+  body.printing-invoice #printArea .invoice .grand .tl,
+  body.printing-invoice #printArea .invoice .grand .tv,
+  body.printing-invoice #printArea .invoice #gt {
+    font-size: 19px !important;
+    font-weight: 900 !important;
+  }
+
+  /* Bank details + amount in words */
+  body.printing-invoice #printArea .invoice .bank-box,
+  body.printing-invoice #printArea .invoice .words-box {
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    padding: 10px !important;
+  }
+  body.printing-invoice #printArea .invoice .box-title {
+    font-size: 14px !important;
+    font-weight: 900 !important;
+  }
+  body.printing-invoice #printArea .invoice .bank-line {
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    margin: 5px 0 !important;
+  }
+  body.printing-invoice #printArea .invoice .words-box #word {
+    font-size: 13px !important;
+    line-height: 1.45 !important;
+    font-weight: 900 !important;
+  }
+}
+</style>
+
 </head>
 <body><div id="authScreen"><div class="login-box"><h2>Admin Login</h2><input id="loginUsername" placeholder="Username" autocomplete="username"><input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password"><button onclick="adminLogin()">Login</button><div id="loginError" class="login-error"></div><div class="login-links"><button onclick="openForgot()">Forgot Password?</button><button onclick="openChangePassword()">Change Password</button></div></div></div><div id="pwModal" class="pw-modal"><div class="pw-box" id="pwBox"></div></div>
 <div id="adminApp" style="display:none">
@@ -549,76 +717,7 @@ async function shareInvoice(){
             "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>" + title + "</title>" +
             "<style>" + Array.from(document.querySelectorAll("style"))
             .map(function(x){return x.textContent;}).join("\n") +
-            "
-@media print{
-  html,body{
-    margin:0!important;
-    padding:0!important;
-    background:#fff!important;
-  }
-
-  /* printArea is inside #invoiceScreen, so don't use body > #printArea */
-  body > #authScreen,
-  body > #pwModal,
-  body > #adminApp{
-    display:none!important;
-  }
-
-  body > #invoiceScreen{
-    display:block!important;
-    width:100%!important;
-    margin:0!important;
-    padding:0!important;
-  }
-
-  body > #invoiceScreen > .invoice-backbar,
-  body > #invoiceScreen > .wrap{
-    display:none!important;
-  }
-
-  body > #invoiceScreen > #printArea{
-    display:block!important;
-    width:210mm!important;
-    margin:0!important;
-    padding:0!important;
-  }
-
-  #printArea .print-page{
-    display:block!important;
-    width:210mm!important;
-    height:297mm!important;
-    min-height:297mm!important;
-    max-height:297mm!important;
-    overflow:hidden!important;
-    margin:0!important;
-    padding:0!important;
-    page-break-after:always!important;
-    break-after:page!important;
-  }
-
-  #printArea .print-page:last-child{
-    page-break-after:auto!important;
-    break-after:auto!important;
-  }
-
-  #printArea .invoice{
-    display:block!important;
-    width:210mm!important;
-    height:297mm!important;
-    min-height:297mm!important;
-    max-height:297mm!important;
-    margin:0!important;
-    padding:6mm!important;
-    box-shadow:none!important;
-    overflow:hidden!important;
-  }
-
-  @page{
-    size:A4;
-    margin:0!important;
-  }
-}
-</style></head><body>" +
+            "</style></head><body>" +
             invoice.outerHTML +
             "</body></html>";
 
@@ -664,7 +763,27 @@ window.onload = function(){
  const headers=()=>token()?{'Authorization':'Bearer '+token(),'Content-Type':'application/json'}:{'Content-Type':'application/json'};
  function showAuth(){document.getElementById('authScreen').style.display='flex';document.getElementById('adminApp').style.display='none';document.getElementById('invoiceScreen').style.display='none';}
  function showApp(){document.getElementById('authScreen').style.display='none';document.getElementById('adminApp').style.display='block';backToDashboard();}
- window.adminLogin=async function(){const u=document.getElementById('loginUsername').value.trim(),p=document.getElementById('loginPassword').value,e=document.getElementById('loginError');e.textContent='';try{const r=await fetch(API+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});const d=await r.json();if(!r.ok)throw Error(d.message||'Login failed');sessionStorage.setItem('invoiceAdminToken',d.token);showApp()}catch(x){e.textContent=x.message}};
+ window.adminLogin=async function(){
+  const u=document.getElementById('loginUsername').value.trim(),p=document.getElementById('loginPassword').value;
+  const e=document.getElementById('loginError');
+  const btn=document.querySelector('#authScreen .login-box > button');
+  e.textContent='';
+  if(!u||!p){e.textContent='Enter username and password';return}
+  if(btn){btn.disabled=true;btn.textContent='Logging in...'}
+  try{
+    const r=await fetch(API+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p}),cache:'no-store'});
+    const d=await r.json();
+    if(!r.ok)throw Error(d.message||'Login failed');
+    sessionStorage.setItem('invoiceAdminToken',d.token);
+    showApp();
+  }catch(x){
+    e.textContent=x.message||'Login failed';
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='Login'}
+  }
+ };
+ // Wake the Render backend while the login screen is open, reducing cold-start delay.
+ fetch(API+'/',{cache:'no-store'}).catch(()=>{});
  window.adminLogout=function(){sessionStorage.removeItem('invoiceAdminToken');showAuth()};
  window.showNewInvoiceTab=function(){document.getElementById('dashboardShell').style.display='none';document.getElementById('invoiceScreen').style.display='block';document.getElementById('invoiceListModal').style.display='none';window.scrollTo({top:0,behavior:'smooth'});prepareNewInvoice()};
 window.backToDashboard=function(){document.getElementById('invoiceScreen').style.display='none';document.getElementById('dashboardShell').style.display='block';document.getElementById('invoiceListModal').style.display='none';window.scrollTo({top:0,behavior:'smooth'})};
@@ -687,32 +806,19 @@ window.backToDashboard=function(){document.getElementById('invoiceScreen').style
   const invEl=document.getElementById('invno');
   if(!dateEl||!invEl||!token()) return;
   const fy=getFinancialYear(dateEl.value);
+  const prefix='RE/'+fy+'/';
   try{
-    const r=await fetch(API+'/api/invoices',{headers:headers()});
-    const list=await r.json();
+    const r=await fetch(API+'/api/next-invoice-number',{headers:headers(),cache:'no-store'});
+    const d=await r.json();
     if(r.status===401){adminLogout();return}
-    if(!r.ok) throw Error(list.message||'Unable to get invoice numbers');
-    const prefix='RE/'+fy+'/';
-    let max=0;
-    (Array.isArray(list)?list:[]).forEach(x=>{
-      const v=String(x.invno||'').trim();
-      if(v.startsWith(prefix)){
-        const m=v.match(/^(?:RE\/\d{2}-\d{2}\/)(\d+)$/i);
-        if(m) max=Math.max(max,Number(m[1])||0);
-      }
-    });
-    invEl.value=prefix+String(max+1);
+    if(!r.ok) throw Error(d.message||'Unable to get invoice number');
+    const m=String(d.invoiceNumber||'1').match(/(\d+)$/);
+    invEl.value=prefix+(m?Number(m[1]):1);
     updateInvoice();
   }catch(e){
-    try{
-      const r=await fetch(API+'/api/next-invoice-number',{headers:headers()});
-      const d=await r.json();
-      if(r.status===401){adminLogout();return}
-      if(!r.ok) throw Error(d.message||'Unable to get invoice number');
-      const m=String(d.invoiceNumber||'1').match(/(\d+)$/);
-      invEl.value='RE/'+fy+'/'+(m?Number(m[1]):1);
-      updateInvoice();
-    }catch(e2){console.error(e2);invEl.value='RE/'+fy+'/1';updateInvoice();}
+    console.error('Invoice number error:',e);
+    invEl.value=prefix+'1';
+    updateInvoice();
   }
  };
  window.saveInvoice=async function(){const d=collect();if(!d.invno){alert('Invoice number is not ready. Please wait a moment.');return}try{const r=await fetch(API+'/api/invoices',{method:'POST',headers:headers(),body:JSON.stringify(d)}),x=await r.json();if(r.status===401){adminLogout();return}if(!r.ok)throw Error(x.message);alert(x.updated?'Invoice updated successfully.':'Invoice saved successfully.');if(!x.updated){document.getElementById('party').value='';document.getElementById('itemsInput').innerHTML='';addItem();await prepareNewInvoice();updateInvoice();}}catch(e){alert(e.message)}};
