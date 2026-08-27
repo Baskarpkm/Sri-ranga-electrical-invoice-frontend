@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0b2d66">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sri Ranga Invoice">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sri Ranga Electrical Works - Invoice Generator</title>
@@ -719,7 +724,18 @@ async function shareInvoice(){
             .map(function(x){return x.textContent;}).join("\n") +
             "</style></head><body>" +
             invoice.outerHTML +
-            "</body></html>";
+            "
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./service-worker.js').catch(function (err) {
+      console.warn('Service worker registration failed:', err);
+    });
+  });
+}
+</script>
+
+</body></html>";
 
         var file2 = new File(
             [new Blob([fullHTML], {type:"text/html"})],
