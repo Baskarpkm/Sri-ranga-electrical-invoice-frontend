@@ -724,18 +724,7 @@ async function shareInvoice(){
             .map(function(x){return x.textContent;}).join("\n") +
             "</style></head><body>" +
             invoice.outerHTML +
-            "
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function () {
-    navigator.serviceWorker.register('./service-worker.js').catch(function (err) {
-      console.warn('Service worker registration failed:', err);
-    });
-  });
-}
-</script>
-
-</body></html>";
+            "</body></html>";
 
         var file2 = new File(
             [new Blob([fullHTML], {type:"text/html"})],
@@ -845,6 +834,16 @@ window.backToDashboard=function(){document.getElementById('invoiceScreen').style
  window.exportInvoices=function(){alert('Invoices are stored in MongoDB Atlas. Use MongoDB backup tools for backup.')};window.importInvoices=function(){alert('Restore through MongoDB backup tools.')};
  window.addEventListener('load',()=>{if(token())showApp();else showAuth()});
 })();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./service-worker.js').catch(function (err) {
+      console.warn('Service worker registration failed:', err);
+    });
+  });
+}
 </script>
 
 </body>
